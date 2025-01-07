@@ -1,16 +1,21 @@
 import Testing
-@testable import Cascadia
+import Cascadia
 
 @Test func testStylesheet() async throws {
-  // struct Style: Stylesheet {}
+  let stylesheet = Stylesheet {
+    Import("subs.css")
+    Import("style.css")
+
+    Class("container") {
+      Background(.red)
+    }
+
+    All {
+      Class("container") > ID("id") {
+        Background(.red)
+      }
+    }
+  }
 }
 
-@Test func testProperties() async throws {
-  _ = Color(.red)
-  _ = Background(.color(.red))
-  _ = BackgroundColor(.red)
-
-  _ = color(.red)
-  _ = background(.color(.red))
-  _ = backgroundColor(.red)
-}
+@Test func testProperties() async throws {}

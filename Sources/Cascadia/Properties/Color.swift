@@ -1,11 +1,9 @@
+struct Color: Property, ColorRepresentable {
+  static let identifier = "color"
 
-let color = Color.init
+  var value: PropertyValue<Self>
 
-public struct Color: Property, ColorRepresentable {
-  public static let name = "color"
-  public var value: PropertyValue<Self>
-
-  public init(_ value: PropertyValue<Self>) {
+  init(_ value: Value) {
     self.value = value
   }
 }
@@ -23,12 +21,12 @@ public extension PropertyValue where P: ColorRepresentable {
 
   // MARK: - Color functions
 
-  static func rgba(r: Int, g: Int, b: Int, a: Int? = nil) -> Self {
-    if let a {
-      Self("rgba(\(r),\(g),\(b),\(a))")
-    } else {
-      Self("rgb(\(r),\(g),\(b))")
-    }
+  static func rgb(r: Int, g: Int, b: Int) -> Self {
+    Self("rgb(\(r),\(g),\(b))")
+  }
+
+  static func rgba(r: Int, g: Int, b: Int, a: Int) -> Self {
+    Self("rgba(\(r),\(g),\(b),\(a))")
   }
 
   static func hsla(h: Int, s: Int, l: Int, a: Int? = nil) -> Self {
@@ -54,9 +52,9 @@ public extension PropertyValue where P: ColorRepresentable {
   //   Self("color(\(colorspace.rawValue))")
   // }
 
-  static var currentColor: Self { #function }
+  static var currentColor: Self { "currentcolor" }
 
-  // MARK: - Named colors
+  // MARK: - <named-color>
 
   static var red: Self { #function }
 

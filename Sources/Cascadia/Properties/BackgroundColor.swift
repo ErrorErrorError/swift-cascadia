@@ -1,8 +1,6 @@
-let backgroundColor = BackgroundColor.init
-
 public struct BackgroundColor: Property, ColorRepresentable {
-  public static let name = "background-color"
-  public var value: PropertyValue<Self>
+  public var value: Value
+  public static let identifier = "background-color"
 
   public init(_ value: Value) {
     self.value = value
