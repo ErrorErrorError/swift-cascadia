@@ -1,6 +1,12 @@
-public struct Select<Content: CSS>: Selector {
+public struct Select<S: Selector, Content: Statement>: Selector {
+  public let selector: S
+  public let content: Content
+
   public init(
-    _ selector: String, 
-    @CSSBuilder content: () -> Content = EmptyCSS.init
-  ) {}
+    _ selector: S, 
+    @StatementBuilder content: () -> Content = EmptyStatement.init
+  ) {
+    self.selector = selector
+    self.content = content()
+  }
 }

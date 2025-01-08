@@ -1,3 +1,7 @@
 public struct Import: AtRule {
-  public init(_ url: String) {}
+  public var url: String
+
+  public init(_ url: String) {
+    self.url = url
+  }
 }

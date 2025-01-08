@@ -1,20 +1,28 @@
 /// An identifier that defines which feature is considered for a given property
-public protocol Property: CSS where Body == Never {
+public protocol Property {
   typealias Value = PropertyValue<Self>
   static var identifier: String { get }
   var value: Value { get }
+
+  static func render<Renderer: PropertyRenderer>(_ property: consuming Self, into render: inout Renderer)
+}
+
+extension Property {
+  public static func render<Renderer: PropertyRenderer>(_ property: consuming Self, into render: inout Renderer) {
+    
+  }
 }
 
 public struct PropertyValue<P: Property>: ExpressibleByStringLiteral {
-  public let rawValue: String
+  public var rawValue: String
 
   @inlinable
   public init(stringLiteral value: StringLiteralType) {
     rawValue = value
   }
 
-  @usableFromInline
-  init(_ value: String) {
+  @inlinable
+  public init(_ value: String) {
     rawValue = value
   }
 }
