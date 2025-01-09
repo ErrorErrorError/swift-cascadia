@@ -1,1 +1,2 @@
-public protocol StatementRenderer {}
+struct StatementRenderer: _StatementRendering {
+}

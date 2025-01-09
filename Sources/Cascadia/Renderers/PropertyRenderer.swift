@@ -1,1 +1,1 @@
-public protocol PropertyRenderer {}
+struct PropertyRenderer: _PropertyRendering {}

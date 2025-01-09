@@ -1,44 +1,29 @@
-@testable import Cascadia
 import Testing
+@testable import Cascadia
 
 @Test func testStylesheet() async throws {
   let stylesheet = Stylesheet {
-    // Import("subs.css")
-    // Import("style.css")
-
-    Class("container") > Class("abc") {
+    Import("subs.css")
+    Import("style.css")
+    All() => {
       Background(.red)
-      Background(.red)
+      BackgroundColor(.red)
+      Color(.red)
+      ColorInterpolation(.linearRGB)
     }
-
-    All {
-      // let hry = Class("container") {
-        // let a = StatementBuilder.buildExpression(Class("abc"))
-        // let b = StatementBuilder.buildExpression(Color(.red))
-        // let c = StatementBuilder.buildExpression(Color(.red))
-
-        // StatementBuilder.buildBlock(a, b, c)
-      // }
-
-      Class("abc") {
-        
-      }
-    }
-
-    All() * Class("app") + All {}
   }
-
-  let test = stylesheet.body
 }
 
-@Test func testProperties() async throws {
-  let hello = Class("container") {
-    let a = Class("abc")
-    let b = Color(.red)
-    let c = BackgroundColor(.red)
-    let d = Background(.red)
+@Test func multiSelector() async throws {
+  #expect((Class("container") <> Attribute("data") * Element(.div)).render() == ".container[data] div")
+}
 
-    let e = StatementBuilder.buildBlock(b, c, d)
-    // let f = StatementBuilder.buildBlock(b, c, a)
-  }
+@Test func propertyRenderer() async throws {
+  let a = Color(.red)
+  let b = BackgroundColor(.red)
+  let c = Background(.red)
+
+  #expect(a.value == .red, "color does not match")
+  #expect(b.value == .red, "background color does not match")
+  #expect(c.value == .red, "background does not match")
 }

@@ -1,34 +1,65 @@
 /// e.g.: [class='test']
-public struct Attribute<Content: Statement>: Selector {
-  public let name: String
-  public let modifier: Modifier?
-  public let value: String?
-  public let content: Content
+public struct Attribute: Selector {
+  public var name: String
+  public var value: Value?
 
-  public init(
-    _ name: String, 
-    @StatementBuilder content: () -> Content
-  ) {
+  public init(_ name: String) {
     self.name = name
-    self.modifier = nil
-    self.value = nil
-    self.content = content()
+    value = nil
   }
 
   public init(
-    _ name: String, 
-    match modifier: Modifier, 
+    _ name: String,
+    match modifier: Modifier,
     value: String,
-    caseSensitive: Bool? = nil,
-    @StatementBuilder content: () -> Content
+    caseSensitive: Bool? = nil
   ) {
     self.name = name
-    self.modifier = modifier
-    self.value = value
-    self.content = content()
+    self.value = Value(
+      modifier: modifier,
+      rawValue: value,
+      caseSensitive: caseSensitive
+    )
   }
 
-  public struct Modifier {
+  public static func render<Renderer: _SelectorRendering>(
+    _ selector: consuming Self,
+    into renderer: inout Renderer
+  ) {
+    renderer.appendBytes(0x5B) // [
+    renderer.appendBytes(selector.name.utf8)
+    if let value = selector.value {
+      renderer.appendBytes(value.modifier.token.utf8)
+      renderer.appendBytes(0x3D) // =
+      renderer.appendBytes(0x22) // "
+      renderer.appendBytes(value.rawValue.utf8)
+      renderer.appendBytes(0x22) // "
+
+      if let caseSensitive = value.caseSensitive {
+        renderer.addWhitespace(canOmit: false)
+        if caseSensitive {
+          renderer.appendBytes(0x69) // i
+        } else {
+          renderer.appendBytes(0x73) // s
+        }
+      }
+    }
+    renderer.appendBytes(0x5D) // ]
+  }
+
+  public struct Value: Sendable {
+    public let modifier: Modifier
+    public let rawValue: String
+    public let caseSensitive: Bool?
+  }
+}
+
+public extension Selector where Self == Attribute {
+  static var attr: Attribute.Type { Attribute.self }
+}
+
+public extension Attribute {
+  struct Modifier: Sendable {
     public let token: String
 
     public init(_ token: String) {
@@ -40,7 +71,7 @@ public struct Attribute<Content: Statement>: Selector {
 
     /// Selects elements where the attribute value starts with the specified substring.
     public static var starts: Self { Self("^") }
-    
+
     /// Selects elements where the attribute value ends with the specified substring.
     public static var ends: Self { Self("$") }
 

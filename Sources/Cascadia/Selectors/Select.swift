@@ -1,4 +1,4 @@
-public struct Select<S: Selector, Content: Statement>: Selector {
+public struct Select<S: Selector, Content: Statement>: Statement {
   public let selector: S
   public let content: Content
 
@@ -8,5 +8,12 @@ public struct Select<S: Selector, Content: Statement>: Selector {
   ) {
     self.selector = selector
     self.content = content()
+  }
+}
+
+infix operator =>: AssignmentPrecedence;
+extension Selector {
+  public static func => <Content: Statement>(lhs: Self, @StatementBuilder rhs: () -> Content) -> Select<Self, Content> {
+    Select(lhs, content: rhs)
   }
 }

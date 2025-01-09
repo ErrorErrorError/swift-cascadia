@@ -4,16 +4,20 @@ public protocol Property {
   static var identifier: String { get }
   var value: Value { get }
 
-  static func render<Renderer: PropertyRenderer>(_ property: consuming Self, into render: inout Renderer)
+  static func render<Renderer: _PropertyRendering>(_ property: consuming Self, into render: inout Renderer)
 }
 
+public protocol _PropertyRendering {}
+
 extension Property {
-  public static func render<Renderer: PropertyRenderer>(_ property: consuming Self, into render: inout Renderer) {
-    
+  public static func render<Renderer: _PropertyRendering>(
+    _ property: consuming Self, 
+    into render: inout Renderer
+  ) {
   }
 }
 
-public struct PropertyValue<P: Property>: ExpressibleByStringLiteral {
+public struct PropertyValue<P: Property>: Equatable, ExpressibleByStringLiteral {
   public var rawValue: String
 
   @inlinable

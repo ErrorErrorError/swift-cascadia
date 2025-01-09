@@ -1,7 +1,17 @@
-public struct All<Content: Statement>: Selector {
-  public let content: Content
+/// Selects all elements
+public struct All: Selector, Sendable {
+  @inlinable
+  public init() {}
 
-  public init(@StatementBuilder content: () -> Content = EmptyStatement.init) {
-    self.content = content()
+  @inlinable @inline(__always)
+  public static func render<Renderer: _SelectorRendering>(
+    _ selector: consuming Self, 
+    into renderer: inout Renderer
+  ) {
+    renderer.appendBytes(0x2A) // *
   }
+}
+
+extension Selector where Self == All {
+  public static var all: Self { Self() }
 }

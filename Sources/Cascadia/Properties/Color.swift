@@ -1,9 +1,9 @@
-struct Color: Property, ColorRepresentable {
-  static let identifier = "color"
+public struct Color: Property, ColorRepresentable {
+  public static let identifier = "color"
 
-  var value: PropertyValue<Self>
+  public var value: PropertyValue<Self>
 
-  init(_ value: Value) {
+  public init(_ value: Value) {
     self.value = value
   }
 }

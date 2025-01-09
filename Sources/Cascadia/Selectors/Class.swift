@@ -1,17 +1,25 @@
-public struct Class<Content: Statement>: Selector {
-  public let name: String
-  public let content: Content
-  
-  public init(
-    _ name: String, 
-    @StatementBuilder content: () -> Content = EmptyStatement.init
-  ) {
+/// e.g.: .container
+public struct Class: Selector {
+  public let name: String  
+  public init(_ name: String) {
     self.name = switch  name.first {
     case .some("."):
       String(name.dropFirst())
     default:
       name
     }
-    self.content = content()
   }
+
+  @inlinable @inline(__always)
+  public static func render<Renderer: _SelectorRendering>(
+    _ selector: consuming Self, 
+    into renderer: inout Renderer
+  ) {
+    renderer.appendBytes(0x2E)                // .
+    renderer.appendBytes(selector.name.utf8)  // name
+  }
+}
+
+extension Selector where Self == Class {
+  public static var `class`: Self.Type { Self.self }
 }

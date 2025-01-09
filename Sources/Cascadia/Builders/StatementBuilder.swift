@@ -11,8 +11,8 @@ public enum StatementBuilder {
   }
 
   @inlinable
-  public static func buildBlock<each Content: Statement>(_ content: repeat each Content) -> _StatementTuple<repeat each Content> {
-    _StatementTuple(repeat each content)
+  public static func buildBlock<each Content: Statement>(_ content: repeat each Content) -> TupleStatement<repeat each Content> {
+    TupleStatement(repeat each content)
   }
 
   @inlinable
@@ -60,8 +60,7 @@ public enum _StatementConditional<TrueContent: Statement, FalseContent: Statemen
   case falseContent(FalseContent)
 }
 
-@_documentation(visibility: internal)
-public struct _StatementTuple<each S: Statement>: Statement {
+public struct TupleStatement<each S: Statement>: Statement {
   let statements: (repeat each S)
 
   public init(_ statements: repeat each S) {

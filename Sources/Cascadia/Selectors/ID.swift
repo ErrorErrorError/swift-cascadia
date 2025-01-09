@@ -1,17 +1,25 @@
-public struct ID<Content: Statement>: Selector {
+public struct ID: Selector {
   public let name: String
-  public let content: Content
 
-  public init(
-    _ name: String, 
-    @StatementBuilder content: () -> Content = EmptyStatement.init
-  ) {
+  public init(_ name: String) {
     self.name = switch  name.first {
     case .some("#"):
       String(name.dropFirst())
     default:
       name
     }
-    self.content = content()
   }
+
+  @inlinable @inline(__always)
+  public static func render<Renderer: _SelectorRendering>(
+    _ selector: consuming Self, 
+    into renderer: inout Renderer
+  ) {
+    renderer.appendBytes(0x23)                // #
+    renderer.appendBytes(selector.name.utf8)  // name
+  }
+}
+
+extension Selector where Self == ID {
+  public static var id: Self.Type { Self.self }
 }

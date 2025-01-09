@@ -1,4 +1,4 @@
-public struct Media<Content: Selector>: AtRule {
+public struct Media<Content: Selector>: AtRule, Statement {
   
   /// A media query
   public var query: String

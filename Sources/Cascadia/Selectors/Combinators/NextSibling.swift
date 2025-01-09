@@ -1,9 +1,7 @@
 /// Next Sibling Combinator `+`
 ///
 /// e.g.: .container + a
-public struct NextSibling<Parent: Selector, S: Selector>: Selector where Parent.Content == EmptyStatement {
-  public typealias Content = S.Content
-
+public struct NextSibling<Parent: Selector, S: Selector>: Selector {
   public var parent: Parent
   public var selector: S
 
@@ -11,6 +9,18 @@ public struct NextSibling<Parent: Selector, S: Selector>: Selector where Parent.
     self.parent = parent
     self.selector = selector
   }
+
+  public static func render<Renderer: _SelectorRendering>(
+    _ selector: consuming Self, 
+    into renderer: inout Renderer
+  ) {
+    Parent.render(selector.parent, into: &renderer)
+    renderer.addWhitespace(canOmit: true)
+    renderer.appendBytes(0x2B)  // +
+    renderer.addWhitespace(canOmit: true)
+    S.render(selector.selector, into: &renderer)
+  }
+
 }
 
 public extension Selector {
