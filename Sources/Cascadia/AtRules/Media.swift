@@ -1,13 +1,13 @@
-public struct Media<Content: NestedStatement>: NestedAtRule {
-  public static var identifier: String { "media" }
+extension CSSAtRules {
+  public enum Media: NestedAtRuleID {
+    public static let identifier = "media"
+  }
+}
 
-  /// A media query
-  public var query: String
+public typealias Media<Content: NestedStatement> = AtRule<CSSAtRules.Media, Content>
 
-  public var content: Content
-
+extension Media where Content: NestedStatement {
   public init(_ query: String, @StatementBuilder content: () -> Content) {
-    self.query = query
-    self.content = content()
+    self.init(Rule(query), content())
   }
 }

@@ -3,16 +3,15 @@ import Testing
 
 @Test func testStylesheet() async throws {
   let stylesheet = Stylesheet {
-    Import("subs.css")
+    Import("abc.css")
 
     All() => {
       Background(.red)
       BackgroundColor(.red)
       Color(.red)
       ColorInterpolation(.linearRGB)
-      
+
       Class("container") => {
-        
       }
     }
   }

@@ -17,7 +17,11 @@ extension Statement {
     _ statement: consuming Self, 
     into renderer: inout Renderer
   ) {
-  } 
+  }
+
+  public consuming func render() -> String {
+    fatalError("not implemented")
+  }
 }
 
 public struct EmptyStatement: NestedStatement {
