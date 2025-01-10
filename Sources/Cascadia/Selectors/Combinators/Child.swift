@@ -1,24 +1,23 @@
 /// Child Combinator `>`
 ///
 /// e.g.: .container > a
-public struct Child<Parent: Selector, S: Selector>: Selector {
+public struct Child<Parent: Selector, Child: Selector>: Selector {
   public var parent: Parent
-  public var selector: S
+  public var child: Child
 
-  public init(_ parent: Parent, _ selector: S) {
+  public init(_ parent: Parent, _ child: Child) {
     self.parent = parent
-    self.selector = selector
+    self.child = child
   }
 
+  @inlinable @inline(__always)
   public static func render<Renderer: _SelectorRendering>(
-    _ selector: consuming Self, 
+    _ selector: consuming Self,
     into renderer: inout Renderer
   ) {
-    Parent.render(selector.parent, into: &renderer) 
-    renderer.addWhitespace(canOmit: true)
-    renderer.appendBytes(0x3E)  // >
-    renderer.addWhitespace(canOmit: true)
-    S.render(selector.selector, into: &renderer)
+    Parent.render(selector.parent, into: &renderer)
+    renderer.appendTokens(.whitespace(), 0x3E, .whitespace()) // >
+    Child.render(selector.child, into: &renderer)
   }
 }
 

@@ -1,26 +1,24 @@
 /// Next Sibling Combinator `+`
 ///
 /// e.g.: .container + a
-public struct NextSibling<Parent: Selector, S: Selector>: Selector {
+public struct NextSibling<Parent: Selector, Child: Selector>: Selector {
   public var parent: Parent
-  public var selector: S
+  public var child: Child
 
-  public init(_ parent: Parent, _ selector: S) {
+  public init(_ parent: Parent, _ child: Child) {
     self.parent = parent
-    self.selector = selector
+    self.child = child
   }
 
+  @inlinable @inline(__always)
   public static func render<Renderer: _SelectorRendering>(
     _ selector: consuming Self, 
     into renderer: inout Renderer
   ) {
     Parent.render(selector.parent, into: &renderer)
-    renderer.addWhitespace(canOmit: true)
-    renderer.appendBytes(0x2B)  // +
-    renderer.addWhitespace(canOmit: true)
-    S.render(selector.selector, into: &renderer)
+    renderer.appendTokens(.whitespace(), 0x2B, .whitespace()) // +
+    Child.render(selector.child, into: &renderer)
   }
-
 }
 
 public extension Selector {

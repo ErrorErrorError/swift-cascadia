@@ -5,50 +5,51 @@ public struct Attribute: Selector {
 
   public init(_ name: String) {
     self.name = name
-    value = nil
+    self.value = nil
   }
 
   public init(
     _ name: String,
-    match modifier: Modifier,
+    match operator: Operator,
     value: String,
     caseSensitive: Bool? = nil
   ) {
     self.name = name
     self.value = Value(
-      modifier: modifier,
+      operator: `operator`,
       rawValue: value,
       caseSensitive: caseSensitive
     )
   }
 
+  @inlinable @inline(__always)
   public static func render<Renderer: _SelectorRendering>(
     _ selector: consuming Self,
     into renderer: inout Renderer
   ) {
-    renderer.appendBytes(0x5B) // [
-    renderer.appendBytes(selector.name.utf8)
+    renderer.appendTokens(0x5B) // [
+    renderer.appendTokens(SelectorToken(selector.name))
     if let value = selector.value {
-      renderer.appendBytes(value.modifier.token.utf8)
-      renderer.appendBytes(0x3D) // =
-      renderer.appendBytes(0x22) // "
-      renderer.appendBytes(value.rawValue.utf8)
-      renderer.appendBytes(0x22) // "
+      renderer.appendTokens(SelectorToken(value.operator.token))
+      renderer.appendTokens(0x3D) // =
+      renderer.appendTokens(0x22) // "
+      renderer.appendTokens(SelectorToken(value.rawValue))
+      renderer.appendTokens(0x22) // "
 
       if let caseSensitive = value.caseSensitive {
-        renderer.addWhitespace(canOmit: false)
+        renderer.appendTokens(.whitespace(canOmit: false))
         if caseSensitive {
-          renderer.appendBytes(0x69) // i
+          renderer.appendTokens(0x69) // i
         } else {
-          renderer.appendBytes(0x73) // s
+          renderer.appendTokens(0x73) // s
         }
       }
     }
-    renderer.appendBytes(0x5D) // ]
+    renderer.appendTokens(0x5D) // ]
   }
 
   public struct Value: Sendable {
-    public let modifier: Modifier
+    public let `operator`: Operator
     public let rawValue: String
     public let caseSensitive: Bool?
   }
@@ -59,7 +60,7 @@ public extension Selector where Self == Attribute {
 }
 
 public extension Attribute {
-  struct Modifier: Sendable {
+  struct Operator: Sendable {
     public let token: String
 
     public init(_ token: String) {

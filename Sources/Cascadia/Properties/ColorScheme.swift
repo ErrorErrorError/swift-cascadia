@@ -1,14 +1,12 @@
-public struct ColorScheme: Property {
-  public static let identifier = "color-scheme"
-
-  public var value: Value
-
-  public init(_ value: Value) {
-    self.value = value
+extension CSSProperty {
+  public enum ColorScheme: Property {
+    public static let identifier = "color-scheme"
   }
 }
 
-extension PropertyValue<ColorScheme> {
+public typealias ColorScheme = CSSProperty.ColorScheme.Value
+
+extension Declaration<ColorScheme.ID> {
   public static var normal: Self { #function }
   public static var dark: Self { #function }
   public static var light: Self { #function }

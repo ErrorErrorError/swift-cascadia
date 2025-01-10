@@ -1,3 +1,7 @@
-public protocol AtRule: Statement {}
+/// A top-level At-Rule that 
+public protocol AtRule: Statement {
+  static var identifier: String { get }
+}
 
-public protocol TopLevelAtRule: Statement {}
+/// A nestable At-Rule that can be used in nested statements
+public typealias NestedAtRule = AtRule & NestedStatement

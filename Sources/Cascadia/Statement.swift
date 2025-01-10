@@ -2,8 +2,15 @@
 /// 
 /// https://developer.mozilla.org/en-US/docs/Web/CSS/Syntax#css_statements
 public protocol Statement {
-  static func render<Renderer: _StatementRendering>(_ statement: consuming Self, into renderer: inout Renderer) async throws
+  static func render<Renderer: _StatementRendering>(
+    _ statement: consuming Self, 
+    into renderer: inout Renderer
+  ) async throws
 }
+
+public protocol NestedStatement: Statement {}
+
+public enum StatementRenderToken {}
 
 extension Statement {
   public static func render<Renderer: _StatementRendering>(
@@ -13,11 +20,9 @@ extension Statement {
   } 
 }
 
-public struct EmptyStatement: Statement {
+public struct EmptyStatement: NestedStatement {
   @inlinable
   public init() {}
 }
 
-public protocol _StatementRendering {
-
-}
+public protocol _StatementRendering {}

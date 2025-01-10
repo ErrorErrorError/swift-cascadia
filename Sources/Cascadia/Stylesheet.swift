@@ -23,7 +23,10 @@ public struct Stylesheet<Content: Statement> {
 
 extension Stylesheet {
   public enum Charset {
+    /// UTF-8
     case utf8
-    case isoLatin9
+
+    /// ISO 8559-15 
+    case iso8559_15
   }
 }

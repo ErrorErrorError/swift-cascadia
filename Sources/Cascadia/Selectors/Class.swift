@@ -1,8 +1,8 @@
 /// e.g.: .container
 public struct Class: Selector {
-  public let name: String  
+  public let name: String
   public init(_ name: String) {
-    self.name = switch  name.first {
+    self.name = switch name.first {
     case .some("."):
       String(name.dropFirst())
     default:
@@ -12,14 +12,14 @@ public struct Class: Selector {
 
   @inlinable @inline(__always)
   public static func render<Renderer: _SelectorRendering>(
-    _ selector: consuming Self, 
+    _ selector: consuming Self,
     into renderer: inout Renderer
   ) {
-    renderer.appendBytes(0x2E)                // .
-    renderer.appendBytes(selector.name.utf8)  // name
+    renderer.appendTokens(0x2E) // .
+    renderer.appendTokens(SelectorToken(selector.name)) // name
   }
 }
 
-extension Selector where Self == Class {
-  public static var `class`: Self.Type { Self.self }
+public extension Selector where Self == Class {
+  static var `class`: Self.Type { Self.self }
 }

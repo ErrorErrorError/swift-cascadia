@@ -2,12 +2,12 @@ public struct Pseudo: Selector, Sendable {
   public let value: Value
 
   /// e.g.: :active
-  public init(_ value: Class) {
+  public init(class value: Class) {
     self.value = .class(value)
   }
 
   /// e.g.: ::after
-  public init(_ value: Element) {
+  public init(element value: Element) {
     self.value = .element(value)
   }
 
@@ -22,49 +22,54 @@ public struct Pseudo: Selector, Sendable {
 
   @inlinable @inline(__always)
   public static func render<Renderer: _SelectorRendering>(
-    _ selector: consuming Self, 
+    _ selector: consuming Self,
     into renderer: inout Renderer
   ) {
-    renderer.appendBytes(0x3A)            // :
+    renderer.appendTokens(0x3A) // :
     let (requiresColon, identifier, value) = switch selector.value {
-      case .class(let pseudo): (false, pseudo.identifier, pseudo.value)
-      case .element(let pseudo): (true, pseudo.identifier, pseudo.value)
+    case let .class(pseudo): (false, pseudo.identifier, pseudo.value)
+    case let .element(pseudo): (true, pseudo.identifier, pseudo.value)
     }
     if requiresColon {
-      renderer.appendBytes(0x3A)          // :
+      renderer.appendTokens(0x3A) // :
     }
-    renderer.appendBytes(identifier.utf8) // identifier
+    renderer.appendTokens(SelectorToken(identifier)) // identifier
     if let value {
-      renderer.appendBytes(0x28)          // (
-      renderer.appendBytes(value.utf8)    // value
-      renderer.appendBytes(0x29)          // )
+      renderer.appendTokens(0x28) // (
+      renderer.appendTokens(SelectorToken(value)) // value
+      renderer.appendTokens(0x29) // )
     }
   }
 }
 
-extension Selector where Self == Pseudo {
-  public static var pseudo: Pseudo.Type { Pseudo.self }
+public extension Selector where Self == Pseudo {
+  static var pseudo: Pseudo.Type { Pseudo.self }
 }
 
 extension Selector {
   func pseudo(_ value: Pseudo.Value) -> some Selector {
-    self.chain(Pseudo(value))
+    chain(Pseudo(value))
   }
 }
 
-extension Pseudo {
-  public struct Class: Equatable, Sendable, ExpressibleByStringLiteral {
+public extension Pseudo {
+  struct Class: Equatable, Sendable, ExpressibleByStringLiteral {
     public let identifier: String
     public let value: String?
 
-    public init(_ identifier: String, values: [String], separator: String = ", ") {
-      self.identifier = identifier
-      self.value = values.joined(separator: separator)
+    public init(_ identifier: String, value: String? = nil) {
+      self.identifier = switch identifier.first {
+      case ":": String(identifier.dropFirst())
+      default: identifier
+      }
+      self.value = value
     }
 
-    public init(_ identifier: String, value: String? = nil) {
-      self.identifier = identifier
-      self.value = value
+    public init(_ identifier: String, values: [String], separator: String = ", ") {
+      self.init(
+        identifier,
+        value: values.joined(separator: separator)
+      )
     }
 
     public init(stringLiteral identifier: StringLiteralType) {
@@ -84,10 +89,10 @@ extension Pseudo {
     public static var current: Self { #function }
 
     public static var `default`: Self { #function }
-    
+
     public static var defined: Self { #function }
-    
-    public static func dir(rtl: Bool) -> Self { 
+
+    public static func dir(rtl: Bool) -> Self {
       Self("dir", value: rtl ? "rtl" : "ltr")
     }
 
@@ -106,7 +111,7 @@ extension Pseudo {
     public static var focus: Self { #function }
 
     public static var focusVisible: Self { "focus-visible" }
-    
+
     public static var focusWithin: Self { "focus-within" }
 
     public static var fullscreen: Self { #function }
@@ -119,7 +124,7 @@ extension Pseudo {
     }
 
     public static var host: Self { #function }
-    
+
     public static var hover: Self { #function }
 
     public static var indeterminate: Self { #function }
@@ -128,7 +133,7 @@ extension Pseudo {
 
     public static var invalid: Self { #function }
 
-    public static func `is`<each S: Selector>(_ selectorList: repeat each S) -> Self {
+    public static func `is`<each S: Selector>(_: repeat each S) -> Self {
       // TODO: Render each selector as a SelectorList
       Self("is", value: "")
     }
@@ -138,7 +143,7 @@ extension Pseudo {
     }
 
     public static var lastChild: Self { "last-child" }
-    
+
     public static var lastOfType: Self { "last-of-type" }
 
     public static var left: Self { #function }
@@ -149,8 +154,8 @@ extension Pseudo {
 
     public static var modal: Self { #function }
 
-    public static func not<each S: Selector>(_ selectors: repeat each S) -> Self {
-      /// TODO: Parse each selector and concadinate as comma-separated list
+    public static func not<each S: Selector>(_: repeat each S) -> Self {
+      // TODO: Parse each selector and concadinate as comma-separated list
       Self("not", value: "")
     }
 
@@ -183,11 +188,11 @@ extension Pseudo {
     public static var paused: Self { #function }
 
     public static var pictureInPicture: Self { "picture-in-picture" }
-    
+
     public static var placeholderShown: Self { "placeholder-shown" }
 
     public static var playing: Self { "playing" }
-    
+
     public static var popoverOpen: Self { "popover-open" }
 
     public static var readOnly: Self { "read-only" }
@@ -195,16 +200,16 @@ extension Pseudo {
     public static var readWrite: Self { "read-write" }
 
     public static var required: Self { #function }
-    
+
     public static var right: Self { #function }
 
     public static var root: Self { #function }
 
     public static var scope: Self { #function }
-    
+
     /// The ``Pseudo/Class/state()`` CSS pseudo-class matches custom elements that have the specified custom state.
-    public static func state(_ identifier: String) -> Self { 
-      Self("state", value: identifier) 
+    public static func state(_ identifier: String) -> Self {
+      Self("state", value: identifier)
     }
 
     /// The ``Pseudo/Class/target`` CSS pseudo-class represents a unique element (the target element) with an id matching the URL's fragment.
@@ -219,26 +224,25 @@ extension Pseudo {
     public static var visited: Self { #function }
 
     /// The ``Pseudo/Class/where()`` CSS pseudo-class function takes a selector list as its argument, and selects any element that can be selected by one of the selectors in that list.
-    public static func `where`<each S: Selector>(_ selectors: repeat each S) -> Self {
-      /// TODO: Parse each selector and concadinate as comma-separated list
+    public static func `where`<each S: Selector>(_: repeat each S) -> Self {
+      // TODO: Parse each selector and concadinate as comma-separated list
       Self("where", value: "")
     }
   }
 }
 
-extension Pseudo {
-  public struct Element: Equatable, Sendable, ExpressibleByStringLiteral {
+public extension Pseudo {
+  struct Element: Equatable, Sendable, ExpressibleByStringLiteral {
     public let identifier: String
     public let value: String?
 
-    public init(_ identifier: String, values: [String], separator: String = ", ") {
-      self.identifier = identifier
-      self.value = values.joined(separator: separator)
+    public init(_ identifier: String, value: String? = nil) {
+      self.identifier = identifier.hasPrefix("::") ? String(identifier.dropFirst(2)) : identifier
+      self.value = value
     }
 
-    public init(_ identifier: String, value: String? = nil) {
-      self.identifier = identifier
-      self.value = value
+    public init(_ identifier: String, values: [String], separator: String = ", ") {
+      self.init(identifier, value: values.joined(separator: separator))
     }
 
     public init(stringLiteral identifier: StringLiteralType) {
@@ -246,21 +250,21 @@ extension Pseudo {
     }
 
     public static var after: Self { #function }
-    
+
     public static var backdrop: Self { #function }
-    
+
     public static var before: Self { #function }
-    
+
     public static var cue: Self { #function }
 
     public static func cue<S: Selector>(_ selector: S) -> Self {
-      Self(Self.cue.identifier, value: selector.render())
+      Self(cue.identifier, value: selector.render())
     }
-    
+
     public static var fileSelectorButton: Self { "file-selector-button" }
-    
+
     public static var firstLetter: Self { "first-letter" }
-    
+
     public static var firstLine: Self { "first-line" }
 
     public static func highlight(_ name: String) -> Self {
@@ -287,20 +291,20 @@ extension Pseudo {
 
     public static var viewTransition: Self { "view-transition" }
 
-    public static func viewTransitionImagePair(_ identifier: String) -> Self { 
+    public static func viewTransitionImagePair(_ identifier: String) -> Self {
       Self("view-transition-image-pair", value: identifier)
     }
 
-    public static func viewTransitionGroup(_ identifier: String) -> Self { 
+    public static func viewTransitionGroup(_ identifier: String) -> Self {
       Self("view-transition-group", value: identifier)
     }
 
-    public static func viewTransitionNew(_ identifier: String) -> Self { 
+    public static func viewTransitionNew(_ identifier: String) -> Self {
       Self("view-transition-new", value: identifier)
     }
 
-    public static func viewTransitionOld(_ identifier: String) -> Self { 
-      Self("view-transition-old", value: identifier) 
+    public static func viewTransitionOld(_ identifier: String) -> Self {
+      Self("view-transition-old", value: identifier)
     }
   }
 }

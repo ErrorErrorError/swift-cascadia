@@ -1,15 +1,13 @@
-public struct Background: Property, ColorRepresentable {
-  public static let identifier = "background"
-
-  public var value: Value
-
-  public init(_ color: BackgroundColor.Value) {
-    self.value = .init(color.rawValue)
+public extension CSSProperty {
+  enum Background: Property, ColorRepresentable {
+    public static let identifier = "background"
   }
 }
 
-public extension PropertyValue where P == Background {
+public typealias Background = CSSProperty.Background.Value
+
+public extension Declaration<Background.ID> {
   static func url(_ string: String) -> Self {
-    self.init(string)
+    self.init(function: "url", value: string)
   }
 }

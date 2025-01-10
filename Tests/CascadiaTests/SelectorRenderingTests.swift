@@ -23,6 +23,8 @@ import Testing
   #expect(Attribute("class", match: .text, value: "test").render() == "[class*=\"test\"]")
   #expect(Attribute("class", match: .word, value: "test").render() == "[class~=\"test\"]")
   #expect(Attribute("class", match: .hyphen, value: "test").render() == "[class|=\"test\"]")
+  #expect(Attribute("class", match: .exact, value: "test", caseSensitive: true).render() == "[class=\"test\" i]")
+  #expect(Attribute("class", match: .exact, value: "test", caseSensitive: false).render() == "[class=\"test\" s]")
 }
 
 @Test func elementSelector() async throws {
@@ -33,11 +35,15 @@ import Testing
 }
 
 @Test func pseudoClass() async throws {
-  #expect(Pseudo(.active).render() == ":active")
-  #expect(Pseudo(.default).render() == ":default")
+  #expect(Pseudo(class: .active).render() == ":active")
+  #expect(Pseudo(class: .default).render() == ":default")
+  #expect(Pseudo(class: "custom").render() == ":custom")
+  #expect(Pseudo(class: ":custom").render() == ":custom")
 }
 
 @Test func pseudoElement() async throws {
-  #expect(Pseudo(.after).render() == "::after")
-  #expect(Pseudo(.placeholder).render() == "::placeholder")
+  #expect(Pseudo(element: .after).render() == "::after")
+  #expect(Pseudo(element: .placeholder).render() == "::placeholder")
+  #expect(Pseudo(element: "custom").render() == "::custom")
+  #expect(Pseudo(element: "::custom").render() == "::custom")
 }

@@ -1,14 +1,12 @@
-public struct ColorInterpolation: Property {
-  public static let identifier = "color-interpolation"
-
-  public var value: PropertyValue<Self>
-
-  public init(_ value: Value) {
-    self.value = value
+extension CSSProperty {
+  public enum ColorInterpolation: Property {
+    public static let identifier = "color-interpolation"
   }
 }
 
-extension PropertyValue<ColorInterpolation> {
+public typealias ColorInterpolation = CSSProperty.ColorInterpolation.Value
+
+extension Declaration<ColorInterpolation.ID> {
   public static var auto: Self { #function } 
   public static var sRGB: Self { #function }
   public static var linearRGB: Self { #function }

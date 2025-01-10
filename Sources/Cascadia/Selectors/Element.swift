@@ -11,7 +11,7 @@ public struct Element: Selector {
     _ selector: consuming Self, 
     into renderer: inout Renderer
   ) {
-    renderer.appendBytes(selector.element.rawValue.utf8)  // element
+    renderer.appendTokens(SelectorToken(selector.element.rawValue))  // element
   }
 }
 

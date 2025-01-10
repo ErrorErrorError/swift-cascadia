@@ -2,7 +2,7 @@ public struct ID: Selector {
   public let name: String
 
   public init(_ name: String) {
-    self.name = switch  name.first {
+    self.name = switch name.first {
     case .some("#"):
       String(name.dropFirst())
     default:
@@ -12,14 +12,14 @@ public struct ID: Selector {
 
   @inlinable @inline(__always)
   public static func render<Renderer: _SelectorRendering>(
-    _ selector: consuming Self, 
+    _ selector: consuming Self,
     into renderer: inout Renderer
   ) {
-    renderer.appendBytes(0x23)                // #
-    renderer.appendBytes(selector.name.utf8)  // name
+    renderer.appendTokens(0x23) // #
+    renderer.appendTokens(SelectorToken(selector.name)) // name
   }
 }
 
-extension Selector where Self == ID {
-  public static var id: Self.Type { Self.self }
+public extension Selector where Self == ID {
+  static var id: Self.Type { Self.self }
 }

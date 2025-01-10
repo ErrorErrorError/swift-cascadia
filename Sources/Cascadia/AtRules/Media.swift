@@ -1,9 +1,9 @@
-public struct Media<Content: Selector>: AtRule, Statement {
-  
+public struct Media<Content: NestedStatement>: NestedAtRule {
+  public static var identifier: String { "media" }
+
   /// A media query
   public var query: String
 
-  @StatementBuilder
   public var content: Content
 
   public init(_ query: String, @StatementBuilder content: () -> Content) {

@@ -1,23 +1,24 @@
 /// Descendant Combinator ` `
-///
 /// Combine two selectors such that elements matched by the second selector are selected if they have an ancestor.
+///
 /// e.g.: .container .item .a
-public struct Descendant<Parent: Selector, S: Selector>: Selector {
+public struct Descendant<Parent: Selector, Child: Selector>: Selector {
   public var parent: Parent
-  public var selector: S
+  public var child: Child
 
-  public init(_ parent: Parent, _ selector: S) {
+  public init(_ parent: Parent, _ child: Child) {
     self.parent = parent
-    self.selector = selector
+    self.child = child
   }
 
+  @inlinable @inline(__always)
   public static func render<Renderer: _SelectorRendering>(
     _ selector: consuming Self, 
     into renderer: inout Renderer
   ) {
     Parent.render(selector.parent, into: &renderer) 
-    renderer.addWhitespace(canOmit: false)
-    S.render(selector.selector, into: &renderer)
+    renderer.appendTokens(.whitespace(canOmit: false))
+    Child.render(selector.child, into: &renderer)
   }
 }
 

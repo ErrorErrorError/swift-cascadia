@@ -1,17 +1,15 @@
-public struct Color: Property, ColorRepresentable {
-  public static let identifier = "color"
-
-  public var value: PropertyValue<Self>
-
-  public init(_ value: Value) {
-    self.value = value
+extension CSSProperty {
+  public enum Color: Property, ColorRepresentable {
+    public static let identifier = "color"
   }
 }
+
+public typealias Color = CSSProperty.Color.Value
 
 /// Represets a property as a type of color.
 public protocol ColorRepresentable {}
 
-public extension PropertyValue where P: ColorRepresentable {
+public extension Declaration where ID: ColorRepresentable {
 
   // MARK: - HEX function
 
