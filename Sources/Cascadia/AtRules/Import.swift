@@ -1,5 +1,5 @@
 extension CSSAtRules {
-  public enum Import: AtRuleID {
+  public enum Import: AtRuleIdentifier {
     public static let identifier = "import"
   }
 }
@@ -14,7 +14,7 @@ extension Import {
     queries: String? = nil
   ) {
     /// TODO: Add Rule builder
-    let urlRule: Rule = switch url {
+    let urlRule: Self.Value = switch url {
     case .string(let value): .quoted(value)
     case .url(let url): .function("url", value: .quoted(url))
     }

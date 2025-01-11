@@ -11,13 +11,11 @@ public struct SubsequentSibling<Parent: Selector, Child: Selector>: Selector {
   }
 
   @inlinable @inline(__always)
-  public static func render<Renderer: _SelectorRendering>(
+  public static func render(
     _ selector: consuming Self,
-    into renderer: inout Renderer
+    into renderer: consuming Renderer.SelectorRenderer
   ) {
-    Parent.render(selector.parent, into: &renderer)
-    renderer.appendTokens(.whitespace(), 0x7E, .whitespace()) // ~
-    Child.render(selector.child, into: &renderer)
+    renderer.join(selector.parent, selector.child, separator: 0x7E) // >
   }
 }
 

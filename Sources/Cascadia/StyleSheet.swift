@@ -1,8 +1,8 @@
 /// A CSS that can contain statement
-public struct Stylesheet<Content: Statement> {
+public struct StyleSheet<Content: Rule> {
   
   /// The ``Stylesheet/body`` of the statement
-  @StatementBuilder
+  @RuleBuilder
   public var body: Content
 
   /// Creates a new Cascading Style Sheet (CSS) with the specified statement.
@@ -10,7 +10,7 @@ public struct Stylesheet<Content: Statement> {
   @inlinable
   public init(
     charset: Charset = .utf8,
-    @StatementBuilder content: () -> Content
+    @RuleBuilder content: () -> Content
   ) {
     self.body = content()
   }
@@ -21,7 +21,7 @@ public struct Stylesheet<Content: Statement> {
   }
 }
 
-extension Stylesheet {
+extension StyleSheet {
   public enum Charset {
     /// UTF-8
     case utf8

@@ -11,12 +11,11 @@ public struct Chain<Parent: Selector, Child: Selector>: Selector {
   }
 
   @inlinable @inline(__always)
-  public static func render<Renderer: _SelectorRendering>(
-    _ selector: consuming Self, 
-    into renderer: inout Renderer
+  public static func render(
+    _ selector: consuming Self,
+    into renderer: consuming Renderer.SelectorRenderer
   ) {
-    Parent.render(selector.parent, into: &renderer)
-    Child.render(selector.child, into: &renderer)
+    renderer.join(selector.parent, selector.child)
   }
 }
 

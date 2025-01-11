@@ -23,29 +23,29 @@ public struct Attribute: Selector {
   }
 
   @inlinable @inline(__always)
-  public static func render<Renderer: _SelectorRendering>(
+  public static func render(
     _ selector: consuming Self,
-    into renderer: inout Renderer
+    into renderer: consuming Renderer.SelectorRenderer
   ) {
-    renderer.appendTokens(0x5B) // [
-    renderer.appendTokens(SelectorToken(selector.name))
+    renderer.add(0x5B) // [
+    renderer.add(selector.name)
     if let value = selector.value {
-      renderer.appendTokens(SelectorToken(value.operator.token))
-      renderer.appendTokens(0x3D) // =
-      renderer.appendTokens(0x22) // "
-      renderer.appendTokens(SelectorToken(value.rawValue))
-      renderer.appendTokens(0x22) // "
+      renderer.add(value.operator.token)
+      renderer.add(0x3D) // =
+      renderer.add(0x22) // "
+      renderer.add(value.rawValue)
+      renderer.add(0x22) // "
 
       if let caseSensitive = value.caseSensitive {
-        renderer.appendTokens(.whitespace(canOmit: false))
+        renderer.addSpace(canOmit: false)
         if caseSensitive {
-          renderer.appendTokens(0x69) // i
+          renderer.add(0x69) // i
         } else {
-          renderer.appendTokens(0x73) // s
+          renderer.add(0x73) // s
         }
       }
     }
-    renderer.appendTokens(0x5D) // ]
+    renderer.add(0x5D) // ]
   }
 
   public struct Value: Sendable {

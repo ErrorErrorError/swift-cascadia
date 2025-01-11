@@ -21,23 +21,23 @@ public struct Pseudo: Selector, Sendable {
   }
 
   @inlinable @inline(__always)
-  public static func render<Renderer: _SelectorRendering>(
+  public static func render(
     _ selector: consuming Self,
-    into renderer: inout Renderer
+    into renderer: consuming Renderer.SelectorRenderer
   ) {
-    renderer.appendTokens(0x3A) // :
+    renderer.add(0x3A)  // :
     let (requiresColon, identifier, value) = switch selector.value {
     case let .class(pseudo): (false, pseudo.identifier, pseudo.value)
     case let .element(pseudo): (true, pseudo.identifier, pseudo.value)
     }
     if requiresColon {
-      renderer.appendTokens(0x3A) // :
+      renderer.add(0x3A)  // :
     }
-    renderer.appendTokens(SelectorToken(identifier)) // identifier
+    renderer.add(identifier) // identifier
     if let value {
-      renderer.appendTokens(0x28) // (
-      renderer.appendTokens(SelectorToken(value)) // value
-      renderer.appendTokens(0x29) // )
+      renderer.add(0x28)  // (
+      renderer.add(value) // value
+      renderer.add(0x29)  // )
     }
   }
 }

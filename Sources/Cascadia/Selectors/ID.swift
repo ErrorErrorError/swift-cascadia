@@ -11,12 +11,12 @@ public struct ID: Selector {
   }
 
   @inlinable @inline(__always)
-  public static func render<Renderer: _SelectorRendering>(
+  public static func render(
     _ selector: consuming Self,
-    into renderer: inout Renderer
+    into renderer: consuming Renderer.SelectorRenderer
   ) {
-    renderer.appendTokens(0x23) // #
-    renderer.appendTokens(SelectorToken(selector.name)) // name
+    renderer.add(0x23) // #
+    renderer.add(selector.name) // name
   }
 }
 

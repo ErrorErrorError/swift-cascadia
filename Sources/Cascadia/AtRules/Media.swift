@@ -1,13 +1,13 @@
 extension CSSAtRules {
-  public enum Media: NestedAtRuleID {
+  public enum Media: AtRuleIdentifier {
     public static let identifier = "media"
   }
 }
 
-public typealias Media<Content: NestedStatement> = AtRule<CSSAtRules.Media, Content>
+public typealias Media<Content: GroupingRule> = AtRule<CSSAtRules.Media, Content>
 
-extension Media where Content: NestedStatement {
-  public init(_ query: String, @StatementBuilder content: () -> Content) {
-    self.init(Rule(query), content())
+extension Media where Content: GroupingRule {
+  public init(_ query: String, @RuleBuilder content: () -> Content) {
+    self.init(Value(query), content())
   }
 }

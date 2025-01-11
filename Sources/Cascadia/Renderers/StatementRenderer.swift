@@ -1,2 +1,0 @@
-struct StatementRenderer: _StatementRendering {
-}

@@ -1,7 +1,12 @@
 import Testing
-@testable import Cascadia
+import Cascadia
 
-@Test func atRuleTests() async throws {
-  #expect(Import("test.css").render() == "@import \"test.css\"")
-  #expect(Import(.url("test.css")).render() == "@import url(\"test.css\")")
+@Test func renderAtRuleStatements() async throws {
+  #expect(Import("test.css").render() == "@import \"test.css\";")
+  #expect(Import(.url("test.css")).render() == "@import url(\"test.css\");")
+}
+
+@Test func renderAtRuleBlock() async throws {
+  let rule = Media("screen") {}
+  #expect(rule.render() == "@media screen {}")
 }

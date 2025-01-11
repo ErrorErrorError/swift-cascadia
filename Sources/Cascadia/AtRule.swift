@@ -1,20 +1,18 @@
 public enum CSSAtRules {}
 
-public protocol AtRuleID {
+public protocol AtRuleIdentifier {
   static var identifier: String { get }
 }
 
-public protocol NestedAtRuleID: AtRuleID {}
-
-public struct AtRule<ID: AtRuleID, Content>: Statement {
+public struct AtRule<ID: AtRuleIdentifier, Content>: Rule {
   private enum Storage {
-    case statement(Rule)
-    case block(Rule?, Content)
+    case statement(Value)
+    case block(Value?, Content)
   }
 
   private let storage: Storage
 
-  public struct Rule: ExpressibleByStringLiteral {
+  public struct Value: ExpressibleByStringLiteral {
     public let rawValue: String
 
     public init(stringLiteral value: String) {
@@ -37,25 +35,41 @@ public struct AtRule<ID: AtRuleID, Content>: Statement {
     }
   }
 
-  public static func render<Renderer: _StatementRendering>(
+  public static func render(
     _ statement: consuming Self, 
-    into renderer: inout Renderer
-  ) async throws {
+    into renderer: consuming Renderer
+  ) {
+    switch statement.storage {
+      case .statement(let value):
+        return renderer.statement(
+          ID.identifier, 
+          value: value.rawValue,
+          use: true
+        )
+      case .block(.some(let value), let content):
+        let block = renderer.block(
+          ID.identifier, 
+          value: value.rawValue,
+          use: true
+        )
+      default:
+        break
+    }
   }
 }
 
 extension AtRule where Content == Never {
-  init(_ rule: Rule) {
-    self.storage = .statement(rule)
+  init(_ value: Value) {
+    self.storage = .statement(value)
   }
 }
 
-extension AtRule where Content: Statement {
-  init(_ rule: Rule? = nil, _ content: Content) {
-    self.storage = .block(rule, content)
+extension AtRule where Content: Rule {
+  init(_ value: Value? = nil, _ content: Content) {
+    self.storage = .block(value, content)
   }
 }
 
-extension AtRule: NestedStatement where ID: NestedAtRuleID {}
+extension AtRule: GroupingRule where Content: GroupingRule {}
 
-public typealias StatementAtRule<ID: AtRuleID> = AtRule<ID, Never>
+public typealias StatementAtRule<ID: AtRuleIdentifier> = AtRule<ID, Never>
