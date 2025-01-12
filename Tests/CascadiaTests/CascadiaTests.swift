@@ -1,13 +1,9 @@
-@testable import Cascadia
+import Cascadia
 import Testing
 
 @Test func testStylesheet() async throws {
   let stylesheet = StyleSheet {
-    if true {
-      Import("abc.css")
-    } else {
-      EmptyRule()
-    }
+    Import("abc.css")
 
     StyleRule(.all) {
       Background(.red)

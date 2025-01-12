@@ -2,10 +2,16 @@
 public struct Element: Selector {
   public let element: HTMLTag
 
+  public var body: some Selector {
+    neverBody(Self.self)
+  }
+
+  @inlinable @inline(__always)
   public init(_ element: HTMLTag) {
     self.element = element
   }
 
+  @_spi(CascadiaCore)
   @inlinable @inline(__always)
   public static func _render(
     _ selector: consuming Self,

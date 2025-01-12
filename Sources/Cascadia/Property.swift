@@ -15,7 +15,11 @@ public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral, 
   public var rawValue: String
   public var isImportant = false
 
-  public var content: some Block { 
+  public var content: Never { 
+    neverBody(Self.self)
+  }
+
+  public var body: Never {
     neverBody(Self.self)
   }
 
@@ -45,6 +49,7 @@ public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral, 
     return self
   }
 
+  @_spi(CascadiaCore)
   @inlinable @inline(__always)
   public static func _render(
     _ declaration: consuming Self,

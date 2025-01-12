@@ -1,12 +1,8 @@
 /// A single CSS rule.
-public protocol Rule: Renderable {
-  associatedtype Body: Rule
-
-  @RuleBuilder
-  var body: Self.Body { get }
-}
+public protocol Rule: CSS where Body: Rule {}
 
 extension Rule {
+  @_spi(CascadiaCore)
   @_documentation(visibility: internal)
   public static func _render(
     _ rule: consuming Self,
@@ -16,10 +12,8 @@ extension Rule {
   }
 }
 
-extension Never: Rule {
-  public typealias Body = Never
-
-  public var body: Never {
-    fatalError()
-  }
-}
+extension Never: Rule {}
+extension EmptyCSS: Rule  {}
+extension TupleCSS: Rule where repeat each Child: Rule {}
+extension _CSSConditional where TrueContent: Rule, FalseContent: Rule {}
+extension Optional: Rule where Wrapped: Rule {}

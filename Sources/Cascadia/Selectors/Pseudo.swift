@@ -1,25 +1,28 @@
 public struct Pseudo: Selector, Sendable {
   public let value: Value
 
+  public var body: some Selector {
+    neverBody(Self.self)
+  }
+
   /// e.g.: :active
+  @inlinable @inline(__always)
   public init(class value: Class) {
     self.value = .class(value)
   }
 
   /// e.g.: ::after
+  @inlinable @inline(__always)
   public init(element value: Element) {
     self.value = .element(value)
   }
 
+  @inlinable @inline(__always)
   public init(_ value: Value) {
     self.value = value
   }
 
-  public enum Value: Equatable, Sendable {
-    case `class`(Class)
-    case element(Element)
-  }
-
+  @_spi(CascadiaCore)
   @inlinable @inline(__always)
   public static func _render(
     _ selector: consuming Self,
@@ -40,6 +43,11 @@ public struct Pseudo: Selector, Sendable {
       renderer.add(value) // value
       renderer.add(0x29)  // )
     }
+  }
+
+  public enum Value: Equatable, Sendable {
+    case `class`(Class)
+    case element(Element)
   }
 }
 

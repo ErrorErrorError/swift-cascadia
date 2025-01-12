@@ -7,16 +7,17 @@ public struct StyleRule<S: Selector, Content: Block>: Rule, Block {
 
   public init(
     _ selector: S, 
-    @BlockBuilder content: () -> Content
+    @CSSBuilder content: () -> Content
   ) {
     self.selector = selector
     self.content = content()
   }
 
-  public var body: some Rule {
+  public var body: Never {
     neverBody(Self.self)
   }
 
+  @_spi(CascadiaCore)
   public static func _render(
     _ rule: consuming Self, 
     into renderer: consuming Renderer
@@ -29,7 +30,7 @@ public struct StyleRule<S: Selector, Content: Block>: Rule, Block {
 
 infix operator =>: AssignmentPrecedence;
 extension Selector {
-  public static func => <Content: Block>(lhs: Self, @BlockBuilder rhs: () -> Content) -> StyleRule<Self, Content> {
+  public static func => <Content: Block>(lhs: Self, @CSSBuilder rhs: () -> Content) -> StyleRule<Self, Content> {
     StyleRule(lhs, content: rhs)
   }
 }

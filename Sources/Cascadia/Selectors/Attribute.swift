@@ -3,6 +3,11 @@ public struct Attribute: Selector {
   public var name: String
   public var value: Value?
 
+  public var body: some Selector {
+    neverBody(Self.self)
+  }
+
+  @inlinable @inline(__always)
   public init(_ name: String) {
     self.name = name
     self.value = nil
@@ -22,6 +27,7 @@ public struct Attribute: Selector {
     )
   }
 
+  @_spi(CascadiaCore)
   @inlinable @inline(__always)
   public static func _render(
     _ selector: consuming Self,

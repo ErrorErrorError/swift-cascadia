@@ -2,7 +2,7 @@
 public struct StyleSheet<Content: Rule> {
   
   /// The ``Stylesheet/body`` of the statement
-  @RuleBuilder
+  @CSSBuilder
   public var body: Content
 
   /// Creates a new Cascading Style Sheet (CSS) with the specified statement.
@@ -10,7 +10,7 @@ public struct StyleSheet<Content: Rule> {
   @inlinable
   public init(
     charset: Charset = .utf8,
-    @RuleBuilder content: () -> Content
+    @CSSBuilder content: () -> Content
   ) {
     self.body = content()
   }

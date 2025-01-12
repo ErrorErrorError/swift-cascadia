@@ -5,11 +5,17 @@ public struct Child<Parent: Selector, Child: Selector>: Selector {
   public var parent: Parent
   public var child: Child
 
+  public var body: some Selector {
+    neverBody(Self.self)
+  }
+
+  @inlinable @inline(__always)
   public init(_ parent: Parent, _ child: Child) {
     self.parent = parent
     self.child = child
   }
 
+  @_spi(CascadiaCore)
   @inlinable @inline(__always)
   public static func _render(
     _ selector: consuming Self,

@@ -1,12 +1,13 @@
-/// A type that allows 
-public protocol Block: Renderable {
+/// A type that allows nesting other rules and blocks
+public protocol Block: CSS where Body == Never {
   associatedtype Content: Block
 
-  @BlockBuilder
+  @CSSBuilder
   var content: Self.Content { get }
 }
 
 extension Block {
+  @_spi(CascadiaCore)
   @_documentation(visibility: internal)
   public static func _render(
     _ block: consuming Self,
@@ -20,17 +21,30 @@ extension Never: Block {
   public typealias Content = Never
 
   public var content: Never {
-    fatalError()
-  }
-
-  public static func _render(
-    _ rule: consuming Self, 
-    into renderer: consuming Renderer
-  ) {
-    fatalError("")
+    neverBody(Self.self)
   }
 }
 
-func neverBody<T>(_ type: T.Type = T.self) -> Never {
-  fatalError("body cannot be called on \(type)")
+extension EmptyCSS: Block {
+  public var content: some Block {
+    neverBody(Self.self)
+  }
+}
+
+extension TupleCSS: Block where repeat each Child: Block {
+  public var content: some Block {
+    neverBody(Self.self)
+  }
+}
+
+extension _CSSConditional where TrueContent: Block, FalseContent: Block {
+  public var content: some Block {
+    neverBody(Self.self)
+  }
+}
+
+extension Optional: Block where Wrapped: Block {
+  public var content: some Block {
+    neverBody(Self.self)
+  }
 }

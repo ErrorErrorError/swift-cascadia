@@ -1,6 +1,12 @@
 /// e.g.: .container
 public struct Class: Selector {
   public let name: String
+
+  public var body: some Selector {
+    neverBody(Self.self)
+  }
+
+  @inlinable @inline(__always)
   public init(_ name: String) {
     self.name = switch name.first {
     case .some("."):
@@ -10,6 +16,7 @@ public struct Class: Selector {
     }
   }
 
+  @_spi(CascadiaCore)
   @inlinable @inline(__always)
   public static func _render(
     _ selector: consuming Self,

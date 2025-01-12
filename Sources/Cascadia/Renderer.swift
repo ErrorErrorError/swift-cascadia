@@ -189,19 +189,3 @@ extension Renderer {
     }
   }
 }
-
-public protocol Renderable {
-  @_documentation(visibility: internal)
-  static func _render(
-    _ value: consuming Self,
-    into renderer: consuming Renderer
-  )
-}
-
-extension Renderable {
-  consuming func render() -> String {
-    let storage = Renderer.TokensStorage()
-    Self._render(self, into: Renderer(storage))
-    return storage.collect()
-  }
-}

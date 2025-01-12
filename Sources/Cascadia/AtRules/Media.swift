@@ -7,7 +7,7 @@ extension CSSAtRules {
 public typealias Media<Content: Rule> = AtRule<CSSAtRules.Media, Content>
 
 extension AtRule where Self == Media<Content> {
-  public init(_ query: String, @RuleBuilder content: () -> Content) {
+  public init(_ query: String, @CSSBuilder content: () -> Content) {
     self.init(value: Value(query), content: content())
   }
 }

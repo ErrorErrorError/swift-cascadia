@@ -39,6 +39,7 @@ public struct AtRule<ID: AtRuleIdentifier, Content: Rule>: Rule {
     }
   }
 
+  @_spi(CascadiaCore)
   public static func _render(
     _ statement: consuming Self,
     into renderer: consuming Renderer
