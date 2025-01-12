@@ -46,7 +46,7 @@ public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral, 
   }
 
   @inlinable @inline(__always)
-  public static func _renderBlock(
+  public static func _render(
     _ declaration: consuming Self,
     into renderer: consuming Renderer
   ) {
@@ -55,7 +55,7 @@ public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral, 
 
   consuming func render() -> String {
     let storage = Renderer.TokensStorage()
-    Self._renderBlock(self, into: Renderer(storage))
+    Self._render(self, into: Renderer(storage))
     return storage.collect()
   }
 }

@@ -1,30 +1,18 @@
 /// A single CSS rule.
-public protocol Rule {
+public protocol Rule: Renderable {
   associatedtype Body: Rule
 
   @RuleBuilder
   var body: Self.Body { get }
-
-  @_documentation(visibility: internal)
-  static func _renderRule(
-    _ rule: consuming Self,
-    into renderer: consuming Renderer
-  )
 }
 
 extension Rule {
   @_documentation(visibility: internal)
-  public static func _renderRule(
+  public static func _render(
     _ rule: consuming Self,
     into renderer: consuming Renderer
   ) {
-    Body._renderRule(rule.body, into: renderer)
-  }
-
-  consuming func render() -> String {
-    let storage = Renderer.TokensStorage()
-    Self._renderRule(self, into: Renderer(storage))
-    return storage.collect()
+    Body._render(rule.body, into: renderer)
   }
 }
 

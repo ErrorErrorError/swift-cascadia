@@ -17,21 +17,12 @@ public struct StyleRule<S: Selector, Content: Block>: Rule, Block {
     neverBody(Self.self)
   }
 
-  public static func _renderRule(
+  public static func _render(
     _ rule: consuming Self, 
     into renderer: consuming Renderer
   ) {
     renderer.block(rule.selector) { block in
-      Content._renderBlock(rule.content, into: Renderer(block.tokens))
-    }
-  }
-
-  public static func _renderBlock(
-    _ block: consuming Self, into 
-    renderer: consuming Renderer
-  ) {
-    renderer.block(block.selector) { b in
-      Content._renderBlock(block.content, into: Renderer(b.tokens))
+      Content._render(rule.content, into: Renderer(block.tokens))
     }
   }
 }

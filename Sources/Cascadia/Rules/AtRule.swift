@@ -39,7 +39,7 @@ public struct AtRule<ID: AtRuleIdentifier, Content: Rule>: Rule {
     }
   }
 
-  public static func _renderRule(
+  public static func _render(
     _ statement: consuming Self,
     into renderer: consuming Renderer
   ) {

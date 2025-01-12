@@ -1,4 +1,4 @@
-/// The renderer used for rendering components
+/// Renderer used for rendering components
 public struct Renderer: ~Copyable {
   var tokens: TokensStorage
 
@@ -187,5 +187,21 @@ extension Renderer {
     consuming func collect() -> String {
       return String(decoding: _bytes.bytes, as: UTF8.self)
     }
+  }
+}
+
+public protocol Renderable {
+  @_documentation(visibility: internal)
+  static func _render(
+    _ rule: consuming Self,
+    into renderer: consuming Renderer
+  )
+}
+
+extension Renderable {
+  consuming func render() -> String {
+    let storage = Renderer.TokensStorage()
+    Self._render(self, into: Renderer(storage))
+    return storage.collect()
   }
 }

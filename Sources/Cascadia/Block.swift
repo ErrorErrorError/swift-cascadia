@@ -1,30 +1,28 @@
-///
-public protocol Block {
+/// A type that allows 
+public protocol Block: Renderable {
   associatedtype Content: Block
 
   @BlockBuilder
   var content: Self.Content { get }
-
-  @_documentation(visibility: internal)
-  static func _renderBlock(
-    _ block: consuming Self,
-    into renderer: consuming Renderer
-  )
 }
+
+// extension Block where Self: Rule {
+  // @_documentation(visibility: internal)
+  // public static func _renderBlock(
+  //   _ block: consuming Self,
+  //   into renderer: consuming Renderer
+  // ) {
+  //   Body._renderRule(block.body, into: renderer)
+  // }
+// }
 
 extension Block {
   @_documentation(visibility: internal)
-  public static func _renderBlock(
+  public static func _render(
     _ block: consuming Self,
     into renderer: consuming Renderer
   ) {
-    Content._renderBlock(block.content, into: renderer)
-  }
-
-  consuming func render() -> String {
-    let storage = Renderer.TokensStorage()
-    Self._renderBlock(self, into: Renderer(storage))
-    return storage.collect()
+    Content._render(block.content, into: renderer)
   }
 }
 
@@ -33,6 +31,13 @@ extension Never: Block {
 
   public var content: Never {
     fatalError()
+  }
+
+  public static func _render(
+    _ rule: consuming Self, 
+    into renderer: consuming Renderer
+  ) {
+    fatalError("")
   }
 }
 

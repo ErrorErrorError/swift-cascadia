@@ -40,7 +40,7 @@ public struct EmptyBlock: Block {
   }
 
   @inlinable @inline(__always)
-  public static func _renderBlock(
+  public static func _render(
     _ block: consuming Self, 
     into renderer: consuming Renderer
   ) {
@@ -60,13 +60,13 @@ public struct TupleBlock<each Child: Block>: Block {
     neverBody(Self.self)
   }
 
-  public static func _renderBlock(
+  public static func _render(
     _ block: consuming Self,
     into renderer: consuming Renderer
   ) {
     for block in repeat each block.blocks {
       func render<R: Block>(_ block: R) {
-        R._renderBlock(block, into: Renderer(renderer.tokens))
+        R._render(block, into: Renderer(renderer.tokens))
       }
 
       render(block)
@@ -83,16 +83,28 @@ public enum _BlockConditional<TrueContent: Block, FalseContent: Block>: Block {
     neverBody(Self.self)
   }
 
-  public static func _renderBlock(
+  public static func _render(
     _ block: consuming Self,
     into renderer: consuming Renderer
   ) {
     switch block {
       case .trueContent(let block):
-        TrueContent._renderBlock(block, into: renderer)
+        TrueContent._render(block, into: renderer)
       case .falseContent(let block):
-        FalseContent._renderBlock(block, into: renderer)
+        FalseContent._render(block, into: renderer)
     }
+  }
+}
+
+extension Optional: Renderable where Wrapped: Renderable {
+  public static func _render(
+    _ block: consuming Self,
+    into renderer: consuming Renderer
+  ) {
+    guard let block else {
+      return
+    }
+    Wrapped._render(block, into: renderer)
   }
 }
 
@@ -101,13 +113,13 @@ extension Optional: Block where Wrapped: Block {
     neverBody(Self.self)
   }
 
-  public static func _renderBlock(
+  public static func _render(
     _ block: consuming Self,
     into renderer: consuming Renderer
   ) {
     guard let block else {
       return
     }
-    Wrapped._renderBlock(block, into: renderer)
+    Wrapped._render(block, into: renderer)
   }
 }
