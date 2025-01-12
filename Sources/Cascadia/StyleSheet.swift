@@ -15,9 +15,10 @@ public struct StyleSheet<Content: Rule> {
     self.body = content()
   }
 
-  public consuming func render() {
-    // var renderer = StatementRenderer()
-    // let result = try await Content.render(body, into: &renderer)
+  public consuming func render() -> String {
+    let storage = Renderer.TokensStorage()
+    Content.render(body, into: Renderer(storage))
+    return storage.collect()
   }
 }
 

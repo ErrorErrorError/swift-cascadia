@@ -4,7 +4,7 @@ public protocol AtRuleIdentifier {
   static var identifier: String { get }
 }
 
-public struct AtRule<ID: AtRuleIdentifier, Content>: Rule {
+public struct AtRule<ID: AtRuleIdentifier, Content: Rule>: Rule {
   private enum Storage {
     case statement(Value)
     case block(Value?, Content)
@@ -47,11 +47,13 @@ public struct AtRule<ID: AtRuleIdentifier, Content>: Rule {
           use: true
         )
       case .block(.some(let value), let content):
-        let block = renderer.block(
+        renderer.block(
           ID.identifier, 
           value: value.rawValue,
           use: true
-        )
+        ) { block in
+
+        }
       default:
         break
     }
@@ -59,17 +61,17 @@ public struct AtRule<ID: AtRuleIdentifier, Content>: Rule {
 }
 
 extension AtRule where Content == Never {
-  init(_ value: Value) {
+  init(value: Value) {
     self.storage = .statement(value)
   }
 }
 
 extension AtRule where Content: Rule {
-  init(_ value: Value? = nil, _ content: Content) {
+  init(value: Value? = nil, content: Content) {
     self.storage = .block(value, content)
   }
 }
 
-extension AtRule: GroupingRule where Content: GroupingRule {}
+extension AtRule: RuleChild where Content: RuleChild {}
 
 public typealias StatementAtRule<ID: AtRuleIdentifier> = AtRule<ID, Never>

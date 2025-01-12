@@ -1,5 +1,5 @@
 import Testing
-import Cascadia
+@testable import Cascadia
 
 @Test func renderAtRuleStatements() async throws {
   #expect(Import("test.css").render() == "@import \"test.css\";")

@@ -1,6 +1,10 @@
 /// The renderer used for rendering components
 public struct Renderer: ~Copyable {
-  let bytes: ByteBuffer
+  var tokens: TokensStorage
+
+  init(_ tokens: consuming sending TokensStorage) {
+    self.tokens = tokens
+  }
 
   /// Render a simple statement
   ///
@@ -10,13 +14,8 @@ public struct Renderer: ~Copyable {
     value: consuming String,
     use atSymbol: consuming Bool = false
   ) {
-    if atSymbol {
-      bytes.append(0x40) // `@`
-    }
-    bytes.append(contentsOf: identifier.utf8)
-    bytes.append(0x20) // <spacer>
-    bytes.append(contentsOf: value.utf8)
-    bytes.append(0x3B) // `;`
+    var renderer = BlockRenderer(tokens)
+    renderer.statement(identifier, value: value, use: atSymbol)
   }
 
   /// Render a block statement
@@ -25,54 +24,51 @@ public struct Renderer: ~Copyable {
   public consuming func block(
     _ identifier: consuming String,
     value: consuming String? = nil,
-    use atSymbol: consuming Bool = false
-  ) -> BlockRenderer {
-    if atSymbol {
-      bytes.append(0x40) // `@`
-    }
+    use atSymbol: consuming Bool = false,
+    operation: (inout BlockRenderer) -> Void
+  ) {
+    var renderer = BlockRenderer(tokens)
+    renderer.block(identifier, value: value, use: atSymbol, operation: operation)
+  }
 
-    bytes.append(contentsOf: identifier.utf8)
-    bytes.append(0x20) // <spacer>
-    if let value {
-      bytes.append(contentsOf: value.utf8)
-      bytes.append(0x20) // <spacer>
-    }
-
-    bytes.append(0x7B) // {
-    bytes.pendingClosures += 1
-    return BlockRenderer(bytes: bytes)
+  public consuming func block<S: Selector>(
+    _ selector: consuming S,
+    operation: (inout BlockRenderer) -> Void
+  ) {
+    var renderer = BlockRenderer(tokens)
+    renderer.block(selector, operation: operation)
   }
 
   public consuming func declaration(
     _ identifier: consuming String,
     value: consuming String
   ) {
-    bytes.append(contentsOf: identifier.utf8)
-    bytes.append(0x3A) // :
-    bytes.append(0x20) // spacer
-    bytes.append(contentsOf: value.utf8)
-    bytes.append(0x3B) // ;
+    var renderer = BlockRenderer(tokens)
+    renderer.declaration(identifier, value: value)
   }
 
   public consuming func selector() -> SelectorRenderer {
-    SelectorRenderer(bytes: bytes)
+    SelectorRenderer(tokens)
   }
-
-  // consuming func stylesheet() -> Self {
-  //   Renderer(bytes: bytes)
-  // }
 }
 
 public extension Renderer {
   struct BlockRenderer: ~Copyable {
-    let bytes: ByteBuffer
+    var tokens: TokensStorage
+
+    init(_ tokens: consuming sending TokensStorage) {
+      self.tokens = tokens
+    }
 
     public mutating func declaration(
       _ identifier: consuming String,
       value: consuming String
     ) {
-      Renderer(bytes: bytes)
-        .declaration(identifier, value: value)
+      tokens.append(contentsOf: identifier.utf8)
+      tokens.append(0x3A) // :
+      tokens.append(0x20) // spacer
+      tokens.append(contentsOf: value.utf8)
+      tokens.append(0x3B) // ;
     }
 
     public mutating func statement(
@@ -80,8 +76,13 @@ public extension Renderer {
       value: consuming String,
       use atSymbol: consuming Bool = false
     ) {
-      return Renderer(bytes: bytes)
-        .statement(identifier, value: value, use: atSymbol)
+      if atSymbol {
+        tokens.append(0x40) // `@`
+      }
+      tokens.append(contentsOf: identifier.utf8)
+      tokens.append(0x20) // <spacer>
+      tokens.append(contentsOf: value.utf8)
+      tokens.append(0x3B) // `;`
     }
 
     /// Render a block statement
@@ -90,36 +91,60 @@ public extension Renderer {
     public mutating func block(
       _ identifier: consuming String,
       value: consuming String? = nil,
-      use atSymbol: consuming Bool = false
-    ) -> BlockRenderer {
-      return Renderer(bytes: bytes)
-        .block(identifier, value: value, use: atSymbol)
+      use atSymbol: consuming Bool = false,
+      operation: (inout BlockRenderer) -> Void
+    ) {
+      if atSymbol {
+        tokens.append(0x40) // `@`
+      }
+
+      tokens.append(contentsOf: identifier.utf8)
+      tokens.append(0x20) // <spacer>
+      if let value {
+        tokens.append(contentsOf: value.utf8)
+        tokens.append(0x20) // <spacer>
+      }
+
+      tokens.append(0x7B) // {
+      operation(&self)
+      tokens.append(0x7D) // }
     }
 
-    public func nested() -> Renderer {
-      Renderer(bytes: bytes)
+    public mutating func block<S: Selector>(
+      _ selector: consuming S,
+      operation: (inout BlockRenderer) -> Void
+    ) {
+      S.render(selector, into: Renderer.SelectorRenderer(tokens))
+      tokens.append(0x20) // <spacer>
+      tokens.append(0x7B) // {
+      operation(&self)
+      tokens.append(0x7D) // }
     }
   }
 }
 
 public extension Renderer {
   struct SelectorRenderer: ~Copyable {
-    let bytes: ByteBuffer
+    var tokens: TokensStorage
+
+    init(_ tokens: consuming sending TokensStorage) {
+      self.tokens = tokens
+    }
 
     public mutating func addSpace(canOmit _: Bool = true) {
-      bytes.append(0x20)
+      tokens.append(0x20)
     }
 
     public mutating func add(_ bytes: UInt8...) {
-      self.bytes.append(contentsOf: bytes)
+      tokens.append(contentsOf: bytes)
     }
 
     public mutating func add<S: Sequence<UInt8>>(_ sequence: consuming S) {
-      bytes.append(contentsOf: sequence)
+      tokens.append(contentsOf: sequence)
     }
 
     public mutating func add(_ string: consuming String) {
-      bytes.append(contentsOf: string.utf8)
+      tokens.append(contentsOf: string.utf8)
     }
 
     public consuming func join<S0: Selector, S1: Selector>(
@@ -127,36 +152,40 @@ public extension Renderer {
       _ second: consuming S1,
       separator: UInt8? = nil
     ) {
-      S0.render(first, into: Self(bytes: bytes))
+      S0.render(first, into: Self(tokens))
       if let separator {
-        if separator != 0x20 { bytes.append(0x20) }
-        bytes.append(separator)
-        if separator != 0x20 { bytes.append(0x20) }
+        if separator != 0x20 { tokens.append(0x20) }
+        tokens.append(separator)
+        if separator != 0x20 { tokens.append(0x20) }
       }
-      S1.render(second, into: Self(bytes: bytes))
+      S1.render(second, into: Self(tokens))
     }
   }
 }
 
-extension Renderer {
-  final class ByteBuffer {
-    var bytes = [UInt8]()
-    var pendingClosures = 0
+// public protocol BackingRenderer {
+//   mutating func append(_ byte: consuming UInt8)
+//   mutating func append<S: Sequence<UInt8>>(contentsOf s: consuming S)
+// }
 
-    func append(_ byte: consuming UInt8) {
-      bytes.append(byte)
+extension Renderer {
+  struct TokensStorage: Sendable {
+    final class Box: @unchecked Sendable {
+      var bytes = [UInt8]()
     }
 
-    func append<S: Sequence<UInt8>>(contentsOf s: consuming S) {
-      bytes.append(contentsOf: s)
+    private var _bytes = Box()
+
+    mutating func append(_ byte: consuming UInt8) {
+      _bytes.bytes.append(byte)
+    }
+
+    mutating func append<S: Sequence<UInt8>>(contentsOf sequence: consuming S) {
+      _bytes.bytes.append(contentsOf: sequence)
     }
 
     consuming func collect() -> String {
-      while pendingClosures > 0 {
-        bytes.append(0x7D)  // }
-        pendingClosures -= 1
-      }
-      return String(decoding: bytes, as: UTF8.self)
+      return String(decoding: _bytes.bytes, as: UTF8.self)
     }
   }
 }

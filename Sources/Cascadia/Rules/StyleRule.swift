@@ -1,5 +1,7 @@
 /// A single style rule containing a selector, and a list of style declarations and rules.
-public struct StyleRule<S: Selector, Content: GroupingRule>: GroupingRule {
+/// 
+/// This can also be represented as a ruleset
+public struct StyleRule<S: Selector, Content: RuleChild>: RuleChild {
   public let selector: S
   public let content: Content
 
@@ -15,15 +17,15 @@ public struct StyleRule<S: Selector, Content: GroupingRule>: GroupingRule {
     _ rule: consuming Self, 
     into renderer: consuming Renderer
   ) {
-    // S.render(rule.selector, into: renderer.selector())
-    // renderer.selector()
-    // renderer.block(S.render(Selector, into: Renderer.SelectorRenderer))
+    renderer.block(rule.selector) { [tokens = renderer.tokens] block in
+      Content.render(rule.content, into: .init(tokens))
+    }
   }
 }
 
 infix operator =>: AssignmentPrecedence;
 extension Selector {
-  public static func => <Content: GroupingRule>(lhs: Self, @RuleBuilder rhs: () -> Content) -> StyleRule<Self, Content> {
+  public static func => <Content: RuleChild>(lhs: Self, @RuleBuilder rhs: () -> Content) -> StyleRule<Self, Content> {
     StyleRule(lhs, content: rhs)
   }
 }

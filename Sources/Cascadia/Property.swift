@@ -49,10 +49,10 @@ public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral {
     renderer.declaration(ID.identifier, value: declaration.rawValue)
   }
 
-  public consuming func render() -> String {
-    let bytes = Renderer.ByteBuffer()
-    Self.render(self, into: Renderer(bytes: bytes))
-    return bytes.collect()
+  consuming func render() -> String {
+    let storage = Renderer.TokensStorage()
+    Self.render(self, into: Renderer(storage))
+    return storage.collect()
   }
 }
 

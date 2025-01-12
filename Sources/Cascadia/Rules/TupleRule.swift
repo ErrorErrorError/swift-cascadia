@@ -9,10 +9,12 @@ public struct TupleRule<each R: Rule>: Rule {
     _ rule: consuming Self,
     into renderer: consuming Renderer
   ) {
-    // repeat (each R).render(repeat each rule.rules, into: renderer)
+    for (rule, type) in repeat (each rule.rules, (each R).self) {
+      type.render(rule, into: Renderer(renderer.tokens))
+    }
   }
 }
 
-extension TupleRule: GroupingRule where repeat each R: GroupingRule {
+extension TupleRule: RuleChild where repeat each R: RuleChild {
     public typealias Content = Never
 }

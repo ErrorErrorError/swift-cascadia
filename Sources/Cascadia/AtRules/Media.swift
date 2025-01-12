@@ -4,10 +4,10 @@ extension CSSAtRules {
   }
 }
 
-public typealias Media<Content: GroupingRule> = AtRule<CSSAtRules.Media, Content>
+public typealias Media<Content: RuleChild> = AtRule<CSSAtRules.Media, Content>
 
-extension Media where Content: GroupingRule {
+extension AtRule where Self == Media<Content> {
   public init(_ query: String, @RuleBuilder content: () -> Content) {
-    self.init(Value(query), content())
+    self.init(value: Value(query), content: content())
   }
 }

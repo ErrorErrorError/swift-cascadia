@@ -6,10 +6,8 @@ public protocol Rule {
   )
 }
 
-/// A rule that contains other rules.
-public protocol GroupingRule: Rule {
-  associatedtype Content: Rule
-
+public protocol RuleChild: Rule {
+  // associatedtype Content: Rule
   // var content: Content { get }
 }
 
@@ -23,22 +21,9 @@ extension Never: Rule {
 }
 
 extension Rule {
-  public consuming func render() -> String {
-    let storage = Renderer.ByteBuffer()
-    Self.render(self, into: Renderer(bytes: storage))
+  consuming func render() -> String {
+    let storage = Renderer.TokensStorage()
+    Self.render(self, into: Renderer(storage))
     return storage.collect()
-  }
-}
-
-public struct EmptyRule: GroupingRule {
-  public typealias Content = Never
-
-  @inlinable
-  public init() {}
-
-  public static func render(
-    _ rule: consuming Self, 
-    into renderer: consuming Renderer
-  ) {
   }
 }

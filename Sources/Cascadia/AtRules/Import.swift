@@ -13,20 +13,24 @@ extension Import {
     supports: String? = nil,
     queries: String? = nil
   ) {
-    /// TODO: Add Rule builder
-    let urlRule: Self.Value = switch url {
-    case .string(let value): .quoted(value)
-    case .url(let url): .function("url", value: .quoted(url))
-    }
-    self.init(urlRule)
+    self.init(value: url.value)
   }
 
   public enum URLValue: ExpressibleByStringLiteral {
     case string(String)
     case url(String)
+    case src(String)
 
     public init(stringLiteral value: StringLiteralType) {
       self = .string(value)
+    }
+
+    var value: Value {
+      switch self {
+      case .string(let value): .quoted(value)
+      case .url(let url): .function("url", value: .quoted(url))
+      case .src(let src): .function("src", value: .quoted(src))
+      }
     }
   }
 }

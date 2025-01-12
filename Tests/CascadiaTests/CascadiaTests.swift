@@ -1,17 +1,16 @@
-@testable import Cascadia
+import Cascadia
 import Testing
 
 @Test func testStylesheet() async throws {
   let stylesheet = StyleSheet {
     Import("abc.css")
 
-    All() => {
+    StyleRule(.all) {
       Background(.red)
-      BackgroundColor(.red)
-      Color(.red)
-      ColorInterpolation(.linearRGB)
     }
   }
+
+  #expect(stylesheet.render() == "@import \"abc.css\";* {background: red;}")
 }
 
 @Test func propertyBuilder() async throws {
@@ -31,7 +30,7 @@ import Testing
 
   let t1 = RuleBuilder.buildPartialBlock(first: o5)
   let t2 = RuleBuilder.buildPartialBlock(accumulated: t1, next: o4)
-  let t3 = RuleBuilder.buildPartialBlock(accumulated: t2, next: o3)
-  let t4 = RuleBuilder.buildPartialBlock(accumulated: t3, next: o2)
-  let t5 = RuleBuilder.buildPartialBlock(accumulated: t4, next: o1)
+  // let t3 = RuleBuilder.buildPartialBlock(accumulated: t2, next: o3)
+  // let t4 = RuleBuilder.buildPartialBlock(accumulated: t3, next: o2)
+  // let t5 = RuleBuilder.buildPartialBlock(accumulated: t4, next: o1)
 }

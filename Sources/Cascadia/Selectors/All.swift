@@ -8,7 +8,7 @@ public struct All: Selector, Sendable {
     _ selector: consuming Self,
     into renderer: consuming Renderer.SelectorRenderer
   ) {
-    renderer.add(0x2A)
+    renderer.add(0x2A)  // *
   }
 }
 

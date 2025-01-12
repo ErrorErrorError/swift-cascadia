@@ -89,9 +89,9 @@ public enum _RuleConditional<TrueContent: Rule, FalseContent: Rule>: Rule {
   }
 }
 
-extension _RuleConditional: GroupingRule where TrueContent: GroupingRule, FalseContent: GroupingRule {
-  public typealias Content = _RuleConditional<TrueContent.Content, FalseContent.Content>
-}
+// extension _RuleConditional: RuleChild where TrueContent: RuleChild, FalseContent: RuleChild {
+//   public typealias Content = _RuleConditional<TrueContent.Content, FalseContent.Content>
+// }
 
 extension Optional: Rule where Wrapped: Rule {
   public static func render(
@@ -101,6 +101,6 @@ extension Optional: Rule where Wrapped: Rule {
   }
 }
 
-extension Optional: GroupingRule where Wrapped: GroupingRule {
-  public typealias Content = Wrapped.Content
+extension Optional: RuleChild where Wrapped: RuleChild {
+  // public typealias Content = Wrapped.Content
 }
