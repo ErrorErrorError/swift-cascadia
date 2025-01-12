@@ -12,10 +12,11 @@ public struct Descendant<Parent: Selector, Child: Selector>: Selector {
   }
 
   @inlinable @inline(__always)
-  public static func _renderSelector(
+  public static func _render(
     _ selector: consuming Self,
-    into renderer: consuming Renderer.SelectorRenderer
+    into renderer: consuming Renderer
   ) {
+    var renderer = renderer.selector()
     renderer.join(selector.parent, selector.child, separator: 0x20) // ` `
   }
 }

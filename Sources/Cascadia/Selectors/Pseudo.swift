@@ -21,10 +21,11 @@ public struct Pseudo: Selector, Sendable {
   }
 
   @inlinable @inline(__always)
-  public static func _renderSelector(
+  public static func _render(
     _ selector: consuming Self,
-    into renderer: consuming Renderer.SelectorRenderer
+    into renderer: consuming Renderer
   ) {
+    var renderer = renderer.selector()
     renderer.add(0x3A)  // :
     let (requiresColon, identifier, value) = switch selector.value {
     case let .class(pseudo): (false, pseudo.identifier, pseudo.value)

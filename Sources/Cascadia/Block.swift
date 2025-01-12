@@ -6,16 +6,6 @@ public protocol Block: Renderable {
   var content: Self.Content { get }
 }
 
-// extension Block where Self: Rule {
-  // @_documentation(visibility: internal)
-  // public static func _renderBlock(
-  //   _ block: consuming Self,
-  //   into renderer: consuming Renderer
-  // ) {
-  //   Body._renderRule(block.body, into: renderer)
-  // }
-// }
-
 extension Block {
   @_documentation(visibility: internal)
   public static func _render(

@@ -23,10 +23,11 @@ public struct Attribute: Selector {
   }
 
   @inlinable @inline(__always)
-  public static func _renderSelector(
+  public static func _render(
     _ selector: consuming Self,
-    into renderer: consuming Renderer.SelectorRenderer
+    into renderer: consuming Renderer
   ) {
+    var renderer = renderer.selector()
     renderer.add(0x5B) // [
     renderer.add(selector.name)
     if let value = selector.value {

@@ -11,10 +11,11 @@ public struct ID: Selector {
   }
 
   @inlinable @inline(__always)
-  public static func _renderSelector(
+  public static func _render(
     _ selector: consuming Self,
-    into renderer: consuming Renderer.SelectorRenderer
+    into renderer: consuming Renderer
   ) {
+    var renderer = renderer.selector()
     renderer.add(0x23) // #
     renderer.add(selector.name) // name
   }

@@ -114,7 +114,7 @@ public extension Renderer {
       _ selector: consuming S,
       operation: (inout BlockRenderer) -> Void
     ) {
-      S._renderSelector(selector, into: Renderer.SelectorRenderer(tokens))
+      S._render(selector, into: Renderer(tokens))
       tokens.append(0x20) // <spacer>
       tokens.append(0x7B) // {
       operation(&self)
@@ -152,13 +152,13 @@ public extension Renderer {
       _ second: consuming S1,
       separator: UInt8? = nil
     ) {
-      S0._renderSelector(first, into: Self(tokens))
+      S0._render(first, into: Renderer(tokens))
       if let separator {
         if separator != 0x20 { tokens.append(0x20) }
         tokens.append(separator)
         if separator != 0x20 { tokens.append(0x20) }
       }
-      S1._renderSelector(second, into: Self(tokens))
+      S1._render(second, into: Renderer(tokens))
     }
   }
 }
@@ -193,7 +193,7 @@ extension Renderer {
 public protocol Renderable {
   @_documentation(visibility: internal)
   static func _render(
-    _ rule: consuming Self,
+    _ value: consuming Self,
     into renderer: consuming Renderer
   )
 }
