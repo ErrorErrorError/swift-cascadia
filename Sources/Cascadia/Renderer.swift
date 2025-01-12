@@ -147,7 +147,7 @@ public extension Renderer {
       tokens.append(contentsOf: string.utf8)
     }
 
-    public consuming func join<S0: Selector, S1: Selector>(
+    public mutating func join<S0: Selector, S1: Selector>(
       _ first: consuming S0,
       _ second: consuming S1,
       separator: UInt8? = nil
