@@ -17,6 +17,7 @@ extension CSS {
     _ value: consuming Self,
     into renderer: consuming Renderer
   ) {
+    Body._render(value.body, into: renderer)
   }
 }
 

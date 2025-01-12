@@ -15,10 +15,6 @@ public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral, 
   public var rawValue: String
   public var isImportant = false
 
-  public var content: Never { 
-    neverBody(Self.self)
-  }
-
   public var body: Never {
     neverBody(Self.self)
   }

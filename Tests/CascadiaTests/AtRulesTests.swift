@@ -7,8 +7,6 @@ import Testing
 }
 
 @Test func renderAtRuleBlock() async throws {
-  // let rule = Media("screen") {
-  //   Background(.red)
-  // }
-  // #expect(rule.render() == "@media screen {}")
+  let rule = Media("screen") {}
+  #expect(rule.render() == "@media screen {}")
 }

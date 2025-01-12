@@ -10,8 +10,9 @@ public enum CSSBuilder {
     content
   }
 
-  public static func buildBlock<each Content: CSS>(_ contents: repeat each Content) -> TupleCSS<repeat each Content> {
-    TupleCSS(repeat each contents)
+  @inlinable @inline(__always)
+  public static func buildBlock<each Content: CSS>(_ contents: repeat each Content) -> CSSTuple<repeat each Content> {
+    CSSTuple(repeat each contents)
   }
 
   @inlinable @inline(__always)
@@ -30,7 +31,7 @@ public enum CSSBuilder {
   }
 }
 
-public struct EmptyCSS: CSS {
+public struct EmptyCSS: CSS, Sendable {
   public init() {}
 
   public var body: Never {
@@ -46,7 +47,7 @@ public struct EmptyCSS: CSS {
 }
 
 /// A type that joins multiple tuple rules
-public struct TupleCSS<each Child: CSS>: CSS {
+public struct CSSTuple<each Child: CSS>: CSS {
   public let values: (repeat each Child)
 
   @inlinable
@@ -73,6 +74,8 @@ public struct TupleCSS<each Child: CSS>: CSS {
   }
 }
 
+extension CSSTuple: Sendable where repeat each Child: Sendable {}
+
 @_documentation(visibility: internal)
 public enum _CSSConditional<TrueContent: CSS, FalseContent: CSS>: CSS {
   case trueContent(TrueContent)
@@ -96,6 +99,9 @@ public enum _CSSConditional<TrueContent: CSS, FalseContent: CSS>: CSS {
   }
 }
 
+extension _CSSConditional: Sendable where TrueContent: Sendable, FalseContent: Sendable {}
+
+
 extension Optional: CSS where Wrapped: CSS {
   public var body: Never {
     neverBody(Self.self)
@@ -112,3 +118,5 @@ extension Optional: CSS where Wrapped: CSS {
     Wrapped._render(renderable, into: renderer)
   }
 }
+
+extension Optional: Sendable where Wrapped: Sendable {}

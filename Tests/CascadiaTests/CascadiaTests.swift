@@ -16,3 +16,11 @@ import Testing
 
   #expect(stylesheet.render() == "@import \"abc.css\";* {background: red;.container {color: red;}}")
 }
+
+@Test func customStylesheet() async throws {
+//   struct CustomSheet: StyleSheet {
+//     var body: some Rule {
+
+//     }
+//   }
+}
