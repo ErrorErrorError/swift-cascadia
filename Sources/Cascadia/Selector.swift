@@ -1,5 +1,9 @@
 /// A CSS selector
 public protocol Selector {
+  // associatedtype Body: Selector
+
+  // var body: Body { get }
+
   static func render(
     _ selector: consuming Self,
     into renderer: consuming Renderer.SelectorRenderer

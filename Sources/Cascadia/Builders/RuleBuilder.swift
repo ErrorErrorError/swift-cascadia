@@ -1,73 +1,76 @@
 @resultBuilder
 public enum RuleBuilder {
-  @inlinable
+  @inlinable @inline(__always)
   public static func buildBlock() -> EmptyRule {
     EmptyRule()
   }
 
-  @inlinable
+  @inlinable @inline(__always)
+  public static func buildBlock<Content: Rule>(_ content: Content) -> Content {
+    content
+  }
+
+  public static func buildBlock<each Content: Rule>(_ contents: repeat each Content) -> TupleRule<repeat each Content> {
+    TupleRule(repeat each contents)
+  }
+
+  @inlinable @inline(__always)
   public static func buildIf<Content: Rule>(_ content: Content?) -> Content? {
     content
   }
 
-  @inlinable
-  public static func buildEither<TrueContent: Rule, FalseContent: Rule>(first: TrueContent) -> some Rule {
-    _RuleConditional<TrueContent, FalseContent>.trueContent(first)
+  @inlinable @inline(__always)
+  public static func buildEither<TrueContent: Rule, FalseContent: Rule>(first: TrueContent) -> _RuleConditional<TrueContent, FalseContent> {
+    .trueContent(first)
   }
 
-  @inlinable
-  public static func buildEither<TrueContent: Rule, FalseContent: Rule>(second: FalseContent) -> some Rule {
-    _RuleConditional<TrueContent, FalseContent>.falseContent(second)
+  @inlinable @inline(__always)
+  public static func buildEither<TrueContent: Rule, FalseContent: Rule>(second: FalseContent) -> _RuleConditional<TrueContent, FalseContent> {
+    .falseContent(second)
   }
 }
 
-/// Build TupleRules without nesting tuples.
-public extension RuleBuilder {
-  @inlinable
-  static func buildPartialBlock<Content: Rule>(first content: Content) -> Content {
-    content
+/// A type that represents an empty CSS rule.
+public struct EmptyRule: Rule {
+  @inlinable @inline(__always)
+  public init() {}
+
+  public var body: some Rule {
+    neverBody(Self.self)
   }
 
-  @inlinable
-  static func buildPartialBlock<S0: Rule, S1: Rule>(accumulated: S0, next: S1) -> TupleRule<S0, S1> {
-    TupleRule(accumulated, next)
+  @inlinable @inline(__always)
+  public static func render(
+    _ rule: consuming Self, 
+    into renderer: consuming Renderer
+  ) {
   }
-
-  @inlinable
-  static func buildPartialBlock<each S0, S1: Rule>(accumulated: TupleRule< repeat each S0>, next: S1) -> TupleRule< repeat each S0, S1> {
-    TupleRule(repeat each accumulated.rules, next)
-  }
-
-  // @inlinable
-  // public static func buildPartialBlock<S0: Statement, S1>(accumulated: S0, next: TupleStatement<S1>) -> TupleStatement<S0, S1> {
-  //   TupleStatement(accumulated, next.statements)
-  // }
 }
 
-// Adds support for building ruleset from properties
-public extension RuleBuilder {
-  @inlinable
-  static func buildPartialBlock<Content: Property>(first content: Content.Value) -> StyleDeclaration<Content> {
-    StyleDeclaration(content)
-  }
+/// A type that joins multiple tuple rules
+public struct TupleRule<each Child: Rule>: Rule {
+  public let rules: (repeat each Child)
 
   @inlinable
-  static func buildPartialBlock<each C0: Property, C1: Property>(accumulated: StyleDeclaration< repeat each C0>, next: C1.Value) -> StyleDeclaration< repeat each C0, C1> {
-    StyleDeclaration(repeat each accumulated.properties, next)
+  public init(_ rules: repeat each Child) {
+    self.rules = (repeat each rules)
   }
 
-  @inlinable
-  static func buildPartialBlock<S0: Rule, P0: Property>(accumulated: S0, next: P0.Value) -> TupleRule<S0, StyleDeclaration<P0>> {
-    TupleRule(accumulated, StyleDeclaration(next))
+  public var body: some Rule {
+    neverBody(Self.self)
   }
 
-  @inlinable
-  static func buildPartialBlock<each S0: Rule, each P0: Property, P1: Property>(
-    accumulated: TupleRule< repeat each S0, StyleDeclaration< repeat each P0>>,
-    next: P1
-  ) -> TupleRule< repeat each S0, StyleDeclaration< repeat each P0, P1>> {
-    fatalError("")
-    // TupleStatement(repeat each accumulated.statements.0, RuleSet(repeat each accumulated.statements.1, next))
+  public static func render(
+    _ rule: consuming Self,
+    into renderer: consuming Renderer
+  ) {
+    for rule in repeat each rule.rules {
+      func render<R: Rule>(_ rule: R) {
+        R.render(rule, into: Renderer(renderer.tokens))
+      }
+
+      render(rule)
+    }
   }
 }
 
@@ -75,6 +78,10 @@ public extension RuleBuilder {
 public enum _RuleConditional<TrueContent: Rule, FalseContent: Rule>: Rule {
   case trueContent(TrueContent)
   case falseContent(FalseContent)
+
+  public var body: some Rule {
+    neverBody(Self.self)
+  }
 
   public static func render(
     _ rule: consuming Self,
@@ -89,18 +96,18 @@ public enum _RuleConditional<TrueContent: Rule, FalseContent: Rule>: Rule {
   }
 }
 
-// extension _RuleConditional: RuleChild where TrueContent: RuleChild, FalseContent: RuleChild {
-//   public typealias Content = _RuleConditional<TrueContent.Content, FalseContent.Content>
-// }
-
 extension Optional: Rule where Wrapped: Rule {
+  public var body: some Rule {
+    neverBody(Self.self)
+  }
+
   public static func render(
-    _: consuming Self,
+    _ rule: consuming Self,
     into renderer: consuming Renderer
   ) {
+    guard let rule else {
+      return
+    }
+    Wrapped.render(rule, into: renderer)
   }
-}
-
-extension Optional: RuleChild where Wrapped: RuleChild {
-  // public typealias Content = Wrapped.Content
 }

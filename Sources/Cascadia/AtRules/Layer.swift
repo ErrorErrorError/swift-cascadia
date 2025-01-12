@@ -12,7 +12,7 @@ extension AtRule where Self == Layer<Never> {
   }
 }
 
-extension AtRule where Self == Layer<Content>, Content: RuleChild {
+extension AtRule where Self == Layer<Content>, Content: Rule {
   public init(_ first: String? = nil, @RuleBuilder content: () -> Content) {
     self.init(
       value: first.flatMap(Value.init(stringLiteral:)), 
