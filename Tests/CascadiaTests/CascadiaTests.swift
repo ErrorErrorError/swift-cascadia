@@ -10,9 +10,13 @@ import Testing
     }
 
     StyleRule(.all) {
-      // Background(.red)
+      Background(.red)
+
+      StyleRule(.class("container")) {
+        Color(.red)
+      }
     }
   }
 
-  #expect(stylesheet.render() == "@import \"abc.css\";* {}")
+  #expect(stylesheet.render() == "@import \"abc.css\";* {background: red;.container {color: red;}}")
 }

@@ -6,24 +6,24 @@ public protocol Rule {
   var body: Self.Body { get }
 
   @_documentation(visibility: internal)
-  static func render(
-    _ rule: consuming Self, 
+  static func _renderRule(
+    _ rule: consuming Self,
     into renderer: consuming Renderer
   )
 }
 
 extension Rule {
   @_documentation(visibility: internal)
-  public static func render(
+  public static func _renderRule(
     _ rule: consuming Self,
     into renderer: consuming Renderer
   ) {
-    Body.render(rule.body, into: renderer)
+    Body._renderRule(rule.body, into: renderer)
   }
 
   consuming func render() -> String {
     let storage = Renderer.TokensStorage()
-    Self.render(self, into: Renderer(storage))
+    Self._renderRule(self, into: Renderer(storage))
     return storage.collect()
   }
 }
@@ -34,8 +34,4 @@ extension Never: Rule {
   public var body: Never {
     fatalError()
   }
-}
-
-func neverBody<T>(_ type: T.Type = T.self) -> Never {
-  fatalError("body cannot be called on \(T.self)")
 }

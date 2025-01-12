@@ -17,7 +17,7 @@ public struct StyleSheet<Content: Rule> {
 
   public consuming func render() -> String {
     let storage = Renderer.TokensStorage()
-    Content.render(body, into: Renderer(storage))
+    Content._renderRule(body, into: Renderer(storage))
     return storage.collect()
   }
 }

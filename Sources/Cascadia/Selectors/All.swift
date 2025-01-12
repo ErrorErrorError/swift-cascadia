@@ -4,7 +4,7 @@ public struct All: Selector, Sendable {
   public init() {}
 
   @inlinable @inline(__always)
-  public static func render(
+  public static func _renderSelector(
     _ selector: consuming Self,
     into renderer: consuming Renderer.SelectorRenderer
   ) {

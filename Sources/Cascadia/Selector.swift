@@ -4,7 +4,7 @@ public protocol Selector {
 
   // var body: Body { get }
 
-  static func render(
+  static func _renderSelector(
     _ selector: consuming Self,
     into renderer: consuming Renderer.SelectorRenderer
   )
@@ -15,7 +15,7 @@ extension Selector {
   /// - Returns: The rendered selector
   consuming func render() -> String {
     let storage = Renderer.TokensStorage()
-    Self.render(self, into: Renderer.SelectorRenderer(storage))
+    Self._renderSelector(self, into: Renderer.SelectorRenderer(storage))
     return storage.collect()
   }
 }

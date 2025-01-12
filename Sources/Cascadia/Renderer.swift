@@ -114,7 +114,7 @@ public extension Renderer {
       _ selector: consuming S,
       operation: (inout BlockRenderer) -> Void
     ) {
-      S.render(selector, into: Renderer.SelectorRenderer(tokens))
+      S._renderSelector(selector, into: Renderer.SelectorRenderer(tokens))
       tokens.append(0x20) // <spacer>
       tokens.append(0x7B) // {
       operation(&self)
@@ -152,13 +152,13 @@ public extension Renderer {
       _ second: consuming S1,
       separator: UInt8? = nil
     ) {
-      S0.render(first, into: Self(tokens))
+      S0._renderSelector(first, into: Self(tokens))
       if let separator {
         if separator != 0x20 { tokens.append(0x20) }
         tokens.append(separator)
         if separator != 0x20 { tokens.append(0x20) }
       }
-      S1.render(second, into: Self(tokens))
+      S1._renderSelector(second, into: Self(tokens))
     }
   }
 }

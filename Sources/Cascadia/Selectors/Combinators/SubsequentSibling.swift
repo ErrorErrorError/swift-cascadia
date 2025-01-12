@@ -11,7 +11,7 @@ public struct SubsequentSibling<Parent: Selector, Child: Selector>: Selector {
   }
 
   @inlinable @inline(__always)
-  public static func render(
+  public static func _renderSelector(
     _ selector: consuming Self,
     into renderer: consuming Renderer.SelectorRenderer
   ) {

@@ -8,12 +8,16 @@ public protocol Property {
 }
 
 /// A property-value pair
-public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral {
+public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral, Block {
   public typealias ID = ID
 
   public var identifier: String { ID.identifier }
   public var rawValue: String
   public var isImportant = false
+
+  public var content: some Block { 
+    neverBody(Self.self)
+  }
 
   @inlinable @inline(__always)
   public init(stringLiteral value: StringLiteralType) {
@@ -42,7 +46,7 @@ public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral {
   }
 
   @inlinable @inline(__always)
-  public static func render(
+  public static func _renderBlock(
     _ declaration: consuming Self,
     into renderer: consuming Renderer
   ) {
@@ -51,7 +55,7 @@ public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral {
 
   consuming func render() -> String {
     let storage = Renderer.TokensStorage()
-    Self.render(self, into: Renderer(storage))
+    Self._renderBlock(self, into: Renderer(storage))
     return storage.collect()
   }
 }
