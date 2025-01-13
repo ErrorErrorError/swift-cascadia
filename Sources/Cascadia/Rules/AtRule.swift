@@ -12,7 +12,9 @@ public struct AtRule<ID: AtRuleIdentifier, Content: Rule>: Rule {
 
   private let storage: Storage
 
-  public var body: some Rule {
+  @_spi(CascadiaCore)
+  @inlinable @inline(__always)
+  public var body: Never {
     neverBody(Self.self)
   }
 
@@ -40,9 +42,9 @@ public struct AtRule<ID: AtRuleIdentifier, Content: Rule>: Rule {
   }
 
   @_spi(CascadiaCore)
-  public static func _render(
+  public static func _render<Writer: StyleSheetWriter>(
     _ statement: consuming Self,
-    into renderer: consuming Renderer
+    into renderer: consuming Renderer<Writer>
   ) {
     switch statement.storage {
     case let .statement(value):
@@ -56,7 +58,8 @@ public struct AtRule<ID: AtRuleIdentifier, Content: Rule>: Rule {
         ID.identifier,
         value: value.rawValue,
         use: true
-      ) { _ in
+      ) { block in
+        Content._render(content, into: Renderer(block.writer))
       }
     default:
       break

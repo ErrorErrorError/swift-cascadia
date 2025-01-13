@@ -2,25 +2,25 @@
 import Testing
 
 @Test func renderAtRule() {
-  let storage = Renderer.TokensStorage()
-  let renderer = Renderer(storage)
+  let writer = CSSTextWriter()
+  let renderer = Renderer(writer)
   renderer.statement("import", value: "\"test.css\"", use: true)
 
-  #expect(storage.collect() == "@import \"test.css\";")
+  #expect(writer.finish() == "@import \"test.css\";")
 }
 
 @Test func renderDeclaration() {
-  let storage = Renderer.TokensStorage()
-  let renderer = Renderer(storage)
+  let writer = CSSTextWriter()
+  let renderer = Renderer(writer)
 
   renderer.declaration("test", value: "value")
 
-  #expect(storage.collect() == "test: value;")
+  #expect(writer.finish() == "test: value;")
 }
 
 @Test func renderBlockRule() async throws {
-  let storage = Renderer.TokensStorage()
-  let renderer = Renderer(storage)
+  let writer = CSSTextWriter()
+  let renderer = Renderer(writer)
 
   renderer.block("*") { b in
     b.declaration("color", value: "red")
@@ -35,5 +35,5 @@ import Testing
     }
   }
 
-  #expect(storage.collect() == "* {color: red;background: red;.all {hey: bye;}.container {test: value;}}")
+  #expect(writer.finish() == "* {color: red;background: red;.all {hey: bye;}.container {test: value;}}")
 }

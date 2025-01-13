@@ -39,9 +39,9 @@ public struct EmptyCSS: CSS, Sendable {
   }
 
   @_spi(CascadiaCore)
-  public static func _render(
+  public static func _render<Writer: StyleSheetWriter>(
     _ value: consuming Self,
-    into renderer: consuming Renderer
+    into renderer: consuming Renderer<Writer>
   ) {
   }
 }
@@ -60,13 +60,13 @@ public struct CSSTuple<each Child: CSS>: CSS {
   }
 
   @_spi(CascadiaCore)
-  public static func _render(
+  public static func _render<Writer: StyleSheetWriter>(
     _ value: consuming Self,
-    into renderer: consuming Renderer
+    into renderer: consuming Renderer<Writer>
   ) {
     for value in repeat each value.values {
       func render<T: CSS>(_ value: T) {
-        T._render(value, into: Renderer(renderer.tokens))
+        T._render(value, into: Renderer(renderer.writer))
       }
 
       render(value)
@@ -86,9 +86,9 @@ public enum _CSSConditional<TrueContent: CSS, FalseContent: CSS>: CSS {
   }
 
   @_spi(CascadiaCore)
-  public static func _render(
+  public static func _render<Writer: StyleSheetWriter>(
     _ value: consuming Self,
-    into renderer: consuming Renderer
+    into renderer: consuming Renderer<Writer>
   ) {
     switch value {
       case .trueContent(let value):
@@ -108,14 +108,14 @@ extension Optional: CSS where Wrapped: CSS {
   }
 
   @_spi(CascadiaCore)
-  public static func _render(
-    _ renderable: consuming Self,
-    into renderer: consuming Renderer
+  public static func _render<Writer: StyleSheetWriter>(
+    _ value: consuming Self,
+    into renderer: consuming Renderer<Writer>
   ) {
-    guard let renderable else {
+    guard let value else {
       return
     }
-    Wrapped._render(renderable, into: renderer)
+    Wrapped._render(value, into: renderer)
   }
 }
 

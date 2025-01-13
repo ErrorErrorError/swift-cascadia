@@ -5,17 +5,17 @@ public protocol CSS {
   var body: Self.Body { get }
 
   @_spi(CascadiaCore)
-  static func _render(
+  static func _render<Writer: StyleSheetWriter>(
     _ value: consuming Self,
-    into renderer: consuming Renderer
+    into renderer: consuming Renderer<Writer>
   )
 }
 
 extension CSS {
   // @_spi(CascadiaCore)
-  public static func _render(
+  public static func _render<Writer: StyleSheetWriter>(
     _ value: consuming Self,
-    into renderer: consuming Renderer
+    into renderer: consuming Renderer<Writer>
   ) {
     Body._render(value.body, into: renderer)
   }
@@ -24,23 +24,17 @@ extension CSS {
 extension Never: CSS {
   public typealias Body = Self
 
-  public var body: Self {
+  public var body: Body {
     neverBody(Self.self)
-  }
-
-  @_spi(CascadiaCore)
-  public static func _render(
-    _ value: consuming Self,
-    into renderer: consuming Renderer
-  ) {
-    fatalError("cannot render")
   }
 }
 
 extension CSS {
-  consuming func render() -> String {
-    let storage = Renderer.TokensStorage()
-    Self._render(self, into: Renderer(storage))
-    return storage.collect()
+  consuming func render<Writer: StyleSheetWriter>(
+    into writer: Writer = CSSTextWriter(),
+    using charset: StyleSheetCharset = .utf8
+  ) -> Writer.Output {
+    Self._render(self, into: Renderer(writer))
+    return writer.finish()
   }
 }

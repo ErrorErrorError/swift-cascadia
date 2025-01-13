@@ -2,8 +2,8 @@
 /// 
 /// This can also be represented as a ruleset
 public struct StyleRule<S: Selector, Content: Block>: Rule, Block {
-  public let selector: S
-  public let content: Content
+  let selector: S
+  let content: Content
 
   public init(
     _ selector: S, 
@@ -13,17 +13,19 @@ public struct StyleRule<S: Selector, Content: Block>: Rule, Block {
     self.content = content()
   }
 
+  @_spi(CascadiaCore)
+  @inlinable @inline(__always)
   public var body: Never {
     neverBody(Self.self)
   }
 
   @_spi(CascadiaCore)
-  public static func _render(
-    _ rule: consuming Self, 
-    into renderer: consuming Renderer
+  public static func _render<Writer: StyleSheetWriter>(
+    _ style: consuming Self,
+    into renderer: consuming Renderer<Writer>
   ) {
-    renderer.block(rule.selector) { block in
-      Content._render(rule.content, into: Renderer(block.tokens))
+    renderer.block(style.selector) { block in
+      Content._render(style.content, into: Renderer(block.writer))
     }
   }
 }

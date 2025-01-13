@@ -15,6 +15,8 @@ public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral, 
   public var rawValue: String
   public var isImportant = false
 
+  @_spi(CascadiaCore)
+  @inlinable @inline(__always)
   public var body: Never {
     neverBody(Self.self)
   }
@@ -47,17 +49,11 @@ public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral, 
 
   @_spi(CascadiaCore)
   @inlinable @inline(__always)
-  public static func _render(
-    _ declaration: consuming Self,
-    into renderer: consuming Renderer
+  public static func _render<Writer: StyleSheetWriter>(
+    _ value: consuming Self,
+    into renderer: consuming Renderer<Writer>
   ) {
-    renderer.declaration(ID.identifier, value: declaration.rawValue)
-  }
-
-  consuming func render() -> String {
-    let storage = Renderer.TokensStorage()
-    Self._render(self, into: Renderer(storage))
-    return storage.collect()
+    renderer.declaration(ID.identifier, value: value.rawValue)
   }
 }
 
