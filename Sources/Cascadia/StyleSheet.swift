@@ -1,33 +1,23 @@
 /// A CSS that can contain statement
-public struct StyleSheet<Content: Rule> {
-  
-  /// The ``Stylesheet/body`` of the statement
+public protocol StyleSheet: CSS where Body: Rule {
   @CSSBuilder
-  public var body: Content
+  var body: Body { get }
+}
 
-  /// Creates a new Cascading Style Sheet (CSS) with the specified statement.
-  /// - Parameter content: The content of the statement
-  @inlinable
-  public init(
-    charset: Charset = .utf8,
-    @CSSBuilder content: () -> Content
-  ) {
-    self.body = content()
-  }
-
-  public consuming func render() -> String {
-    let storage = Renderer.TokensStorage()
-    Content._render(body, into: Renderer(storage))
-    return storage.collect()
+public extension StyleSheet {
+  consuming func render<Writer: StyleSheetWriter>(
+    into writer: Writer = CSSTextWriter(), 
+    using charset: StyleSheetCharset = .utf8
+  ) -> Writer.Output {
+    Body._render(body, into: Renderer(writer))
+    return writer.finish()
   }
 }
 
-extension StyleSheet {
-  public enum Charset {
-    /// UTF-8
-    case utf8
+public enum StyleSheetCharset {
+  /// UTF-8
+  case utf8
 
-    /// ISO 8559-15 
-    case iso8559_15
-  }
+  /// ISO 8559-15 (Latin-9)
+  case iso8559_15
 }
