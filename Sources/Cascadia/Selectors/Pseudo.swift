@@ -1,7 +1,7 @@
 public struct Pseudo: Selector, Sendable {
   public let value: Value
 
-  @_spi(CascadiaCore)
+  @_spi(Core)
   @inlinable @inline(__always)
   public var body: Never {
     neverBody(Self.self)
@@ -24,26 +24,27 @@ public struct Pseudo: Selector, Sendable {
     self.value = value
   }
 
-  @_spi(CascadiaCore)
+  @_spi(Renderer)
   @inlinable @inline(__always)
-  public static func _render<Writer: StyleSheetWriter>(
+  public static func _render<Renderer: CSSRendering>(
     _ selector: consuming Self,
-    into renderer: consuming Renderer<Writer>
+    into renderer: inout Renderer
   ) {
-    var renderer = renderer.selector()
-    renderer.add(0x3A)  // :
-    let (requiresColon, identifier, value) = switch selector.value {
-    case let .class(pseudo): (false, pseudo.identifier, pseudo.value)
-    case let .element(pseudo): (true, pseudo.identifier, pseudo.value)
-    }
-    if requiresColon {
-      renderer.add(0x3A)  // :
-    }
-    renderer.add(identifier) // identifier
-    if let value {
-      renderer.add(0x28)  // (
-      renderer.add(value) // value
-      renderer.add(0x29)  // )
+    renderer.selector { renderer in
+      renderer.write(0x3A)  // :
+      let (requiresColon, identifier, value) = switch selector.value {
+      case let .class(pseudo): (false, pseudo.identifier, pseudo.value)
+      case let .element(pseudo): (true, pseudo.identifier, pseudo.value)
+      }
+      if requiresColon {
+        renderer.write(0x3A)  // :
+      }
+      renderer.write(contentsOf: identifier.utf8) // identifier
+      if let value {
+        renderer.write(0x28)  // (
+        renderer.write(contentsOf: value.utf8) // value
+        renderer.write(0x29)  // )
+      }
     }
   }
 

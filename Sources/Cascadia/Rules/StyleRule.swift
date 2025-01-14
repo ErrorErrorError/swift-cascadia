@@ -13,19 +13,19 @@ public struct StyleRule<S: Selector, Content: Block>: Rule, Block {
     self.content = content()
   }
 
-  @_spi(CascadiaCore)
+  @_spi(Core)
   @inlinable @inline(__always)
   public var body: Never {
     neverBody(Self.self)
   }
 
-  @_spi(CascadiaCore)
-  public static func _render<Writer: StyleSheetWriter>(
+  @_spi(Renderer)
+  public static func _render<Renderer: CSSRendering>(
     _ style: consuming Self,
-    into renderer: consuming Renderer<Writer>
+    into renderer: inout Renderer
   ) {
     renderer.block(style.selector) { block in
-      Content._render(style.content, into: Renderer(block.writer))
+      Content._render(style.content, into: &block)
     }
   }
 }

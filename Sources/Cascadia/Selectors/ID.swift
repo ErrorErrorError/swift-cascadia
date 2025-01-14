@@ -1,7 +1,7 @@
 public struct ID: Selector {
   public let name: String
 
-  @_spi(CascadiaCore)
+  @_spi(Core)
   @inlinable @inline(__always)
   public var body: Never {
     neverBody(Self.self)
@@ -17,15 +17,16 @@ public struct ID: Selector {
     }
   }
 
-  @_spi(CascadiaCore)
+  @_spi(Renderer)
   @inlinable @inline(__always)
-  public static func _render<Writer: StyleSheetWriter>(
+  public static func _render<Renderer: CSSRendering>(
     _ selector: consuming Self,
-    into renderer: consuming Renderer<Writer>
+    into renderer: inout Renderer
   ) {
-    var renderer = renderer.selector()
-    renderer.add(0x23) // #
-    renderer.add(selector.name) // name
+    renderer.selector { renderer in
+      renderer.write(0x23) // #
+      renderer.write(contentsOf: selector.name.utf8) // name
+    }
   }
 }
 

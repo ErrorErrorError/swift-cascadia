@@ -1,209 +1,145 @@
-public protocol StyleSheetWriter: Sendable {
+public protocol CSSRendering {
+  /// The output type when ``finish()`` is called.
   associatedtype Output
 
+  /// Write a single byte.
+  /// - Parameter byte: The byte to write
   mutating func write(_ byte: consuming UInt8)
+
+  /// Write a sequence of bytes
+  /// - Parameter sequence: The sequence of bytes
   mutating func write<S: Sequence<UInt8>>(contentsOf sequence: consuming S)
 
+  /// Finish writing
   consuming func finish() -> Output
 }
 
-extension StyleSheetWriter where Output == Void {
-  consuming func finish() -> Void { () }
-}
-
-/// Renderer used for rendering components
-public struct Renderer<Writer: StyleSheetWriter>: ~Copyable {
-  var writer: Writer
-
-  init(_ writer: consuming sending Writer) {
-    self.writer = writer
+extension CSSRendering {
+  /// Default implementation of writing a sequence of UInt8
+  public mutating func write<S: Sequence<UInt8>>(contentsOf sequence: consuming S) {
+    for byte in sequence {
+      write(byte)
+    }
   }
 
-  /// Render a simple statement
-  ///
-  /// e.g.: @import "style.css"
-  public consuming func statement(
+  /// Default implementation of finishing writing a stylesheet.
+  public consuming func finish() where Output == Void {}
+}
+
+/// Renderering functions
+@_spi(Renderer)
+extension CSSRendering {
+  public mutating func declaration(
+    _ identifier: consuming String,
+    value: consuming String,
+    important: Bool = false
+  ) {
+    write(contentsOf: identifier.utf8)
+    write(0x3A) // :
+    write(0x20) // spacer
+    write(contentsOf: value.utf8)
+    if (important) {
+      write(0x20) // spacer
+      write(0x21) // !
+      write(contentsOf: "important".utf8)
+    }
+    write(0x3B) // ;
+  }
+
+  public mutating func statement(
     _ identifier: consuming String,
     value: consuming String,
     use atSymbol: consuming Bool = false
   ) {
-    var renderer = BlockRenderer(writer)
-    renderer.statement(identifier, value: value, use: atSymbol)
+    if atSymbol{ 
+      write(0x40) // `@`
+    }
+    write(contentsOf: identifier.utf8)
+    write(0x20) // <spacer>
+    write(contentsOf: value.utf8)
+    write(0x3B) // `;`
   }
 
-  /// Render a block component with identifier
+  /// Renders a block
   ///
-  /// e.g.: #id {}
-  public consuming func block(
+  /// <at-keyword-token>?<identifier> <value>? {}
+  public mutating func block(
     _ identifier: consuming String,
     value: consuming String? = nil,
     use atSymbol: consuming Bool = false,
-    operation: (inout BlockRenderer) -> Void
+    operation: (inout Self) -> Void
   ) {
-    var renderer = BlockRenderer(writer)
-    renderer.block(identifier, value: value, use: atSymbol, operation: operation)
+    if atSymbol {
+      write(0x40) // `@`
+    }
+    write(contentsOf: identifier.utf8)
+    write(0x20) // <spacer>
+    if let value {
+      write(contentsOf: value.utf8)
+      write(0x20) // <spacer>
+    }
+    write(0x7B) // {
+    operation(&self)
+    write(0x7D) // }
   }
 
-  /// Render a block component with selector
-  /// 
-  /// e.g.: * {}
-  public consuming func block<S: Selector>(
+  /// Renders a block with the given selector
+  public mutating func block<S: Selector>(
     _ selector: consuming S,
-    operation: (inout BlockRenderer) -> Void
+    operation: (inout Self) -> Void
   ) {
-    var renderer = BlockRenderer(writer)
-    renderer.block(selector, operation: operation)
+    S._render(selector, into: &self)
+    write(0x20) // <spacer>
+    write(0x7B) // {
+    operation(&self)
+    write(0x7D) // }
   }
 
-  /// Render a declaration using a property identifier and value
-  /// - Parameters:
-  ///   - identifier: The property's identifier name
-  ///   - value: The  value for the specified property
-  public consuming func declaration(
-    _ identifier: consuming String,
-    value: consuming String
-  ) {
-    var renderer = BlockRenderer(writer)
-    renderer.declaration(identifier, value: value)
-  }
-
-  /// Render a selector
-  /// - Returns: The renderer used to build a selector
-  public consuming func selector() -> SelectorRenderer {
-    SelectorRenderer(writer)
+  public mutating func selector(operation: (inout _SelectorRenderer) -> Void) {
+    var renderer = _SelectorRenderer()
+    operation(&renderer)
+    self.write(contentsOf: renderer.bytes)
   }
 }
 
-public extension Renderer {
-  struct BlockRenderer: ~Copyable {
-    var writer: Writer
+@_spi(Renderer)
+public struct _SelectorRenderer: CSSRendering {
+  var bytes: [UInt8] = []
 
-    init(_ writer: consuming sending Writer) {
-      self.writer = writer
+  public mutating func write(_ byte: UInt8) {
+    self.bytes.append(byte)
+  }
+
+  public mutating func write<S: Sequence<UInt8>>(contentsOf sequence: S) {
+    self.bytes.append(contentsOf: sequence)
+  }
+
+  public mutating func join<S0: Selector, S1: Selector>(_ s0: S0, _ s1: S1, separator: UInt8? = nil) {
+    S0._render(s0, into: &self)
+    if let separator {
+      if separator != 0x20 { write(0x20) }
+      write(separator)
+      if separator != 0x20 { write(0x20) } 
     }
-
-    public mutating func declaration(
-      _ identifier: consuming String,
-      value: consuming String
-    ) {
-      writer.write(contentsOf: identifier.utf8)
-      writer.write(0x3A) // :
-      writer.write(0x20) // spacer
-      writer.write(contentsOf: value.utf8)
-      writer.write(0x3B) // ;
-    }
-
-    public mutating func statement(
-      _ identifier: consuming String,
-      value: consuming String,
-      use atSymbol: consuming Bool = false
-    ) {
-      if atSymbol {
-        writer.write(0x40) // `@`
-      }
-      writer.write(contentsOf: identifier.utf8)
-      writer.write(0x20) // <spacer>
-      writer.write(contentsOf: value.utf8)
-      writer.write(0x3B) // `;`
-    }
-
-    /// Render a block statement
-    ///
-    /// e.g.: #id {}
-    public mutating func block(
-      _ identifier: consuming String,
-      value: consuming String? = nil,
-      use atSymbol: consuming Bool = false,
-      operation: (inout BlockRenderer) -> Void
-    ) {
-      if atSymbol {
-        writer.write(0x40) // `@`
-      }
-
-      writer.write(contentsOf: identifier.utf8)
-      writer.write(0x20) // <spacer>
-      if let value {
-        writer.write(contentsOf: value.utf8)
-        writer.write(0x20) // <spacer>
-      }
-
-      writer.write(0x7B) // {
-      operation(&self)
-      writer.write(0x7D) // }
-    }
-
-    public mutating func block<S: Selector>(
-      _ selector: consuming S,
-      operation: (inout BlockRenderer) -> Void
-    ) {
-      S._render(selector, into: Renderer(writer))
-      writer.write(0x20) // <spacer>
-      writer.write(0x7B) // {
-      operation(&self)
-      writer.write(0x7D) // }
-    }
+    S1._render(s1, into: &self)
   }
 }
 
-public extension Renderer {
-  struct SelectorRenderer: ~Copyable {
-    var writer: Writer
+@_spi(Renderer)
+public struct _CSSTextRenderer: Sendable, CSSRendering {
+  public init() {}
 
-    init(_ writer: consuming sending Writer) {
-      self.writer = writer
-    }
-
-    public mutating func addSpace(canOmit _: Bool = true) {
-      writer.write(0x20)
-    }
-
-    public mutating func add(_ bytes: UInt8...) {
-      writer.write(contentsOf: bytes)
-    }
-
-    public mutating func add<S: Sequence<UInt8>>(_ sequence: consuming S) {
-      writer.write(contentsOf: sequence)
-    }
-
-    public mutating func add(_ string: consuming String) {
-      writer.write(contentsOf: string.utf8)
-    }
-
-    public mutating func join<S0: Selector, S1: Selector>(
-      _ first: consuming S0,
-      _ second: consuming S1,
-      separator: UInt8? = nil
-    ) {
-      S0._render(first, into: Renderer(writer))
-      if let separator {
-        if separator != 0x20 { writer.write(0x20) }
-        writer.write(separator)
-        if separator != 0x20 { writer.write(0x20) }
-      }
-      S1._render(second, into: Renderer(writer))
-    }
-  }
-}
-
-public struct CSSTextWriter: Sendable, StyleSheetWriter {
-  @usableFromInline
-  init() {}
-
-  final class Box: @unchecked Sendable {
-    var bytes = [UInt8]()
-  }
-
-  private var _bytes = Box()
+  private var bytes: [UInt8] = []
 
   public mutating func write(_ byte: consuming UInt8) {
-    _bytes.bytes.append(byte)
+    bytes.append(byte)
   }
 
   public mutating func write<S: Sequence<UInt8>>(contentsOf sequence: consuming S) {
-    _bytes.bytes.append(contentsOf: sequence)
+    bytes.append(contentsOf: sequence)
   }
 
   public consuming func finish() -> String {
-    return String(decoding: _bytes.bytes, as: UTF8.self)
+    return String(decoding: bytes, as: UTF8.self)
   }
 }

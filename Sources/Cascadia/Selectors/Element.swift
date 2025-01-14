@@ -2,7 +2,7 @@
 public struct Element: Selector {
   public let element: HTMLTag
 
-  @_spi(CascadiaCore)
+  @_spi(Core)
   @inlinable @inline(__always)
   public var body: Never {
     neverBody(Self.self)
@@ -13,14 +13,15 @@ public struct Element: Selector {
     self.element = element
   }
 
-  @_spi(CascadiaCore)
+  @_spi(Renderer)
   @inlinable @inline(__always)
-  public static func _render<Writer: StyleSheetWriter>(
+  public static func _render<Renderer: CSSRendering>(
     _ selector: consuming Self,
-    into renderer: consuming Renderer<Writer>
+    into renderer: inout Renderer
   ) {
-    var renderer = renderer.selector()
-    renderer.add(selector.element.rawValue)  // element
+    renderer.selector { renderer in
+      renderer.write(contentsOf: selector.element.rawValue.utf8)  // element
+    }
   }
 }
 

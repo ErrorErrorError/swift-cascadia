@@ -1,18 +1,18 @@
 import Cascadia
 import Testing
 
-@Test func testStylesheet() async throws {
+@Test func renderStylesheet() async throws {
   let result = stylesheet {
     Import("style.css")
   }
-  
+
   #expect(result == "@import \"style.css\";")
 }
 
 @Test func customStylesheet() async throws {
   struct CustomSheet: StyleSheet {
     var body: some Rule {
-      Import("abc.css")
+      Import("style.css")
 
       StyleRule(.all) {
         Background(.red)
@@ -24,5 +24,5 @@ import Testing
     }
   }
 
-  #expect(CustomSheet().render() == "@import \"abc.css\";* {background: red;.container {color: red;}}")
+  #expect(CustomSheet().render() == "@import \"style.css\";* {background: red;.container {color: red;}}")
 }

@@ -4,22 +4,22 @@ public protocol CSS {
   @CSSBuilder
   var body: Self.Body { get }
 
-  @_spi(CascadiaCore)
-  static func _render<Writer: StyleSheetWriter>(
+  @_spi(Renderer)
+  static func _render<Renderer: CSSRendering>(
     _ value: consuming Self,
-    into renderer: consuming Renderer<Writer>
+    into renderer: inout Renderer
   )
 }
 
 extension CSS {
   // TODO: Hide `CSS/_render` static function from autocompletion.
-  // @_spi(CascadiaCore)
+  // @_spi(Renderer)
   @_documentation(visibility: internal)
-  public static func _render<Writer: StyleSheetWriter>(
+  public static func _render<Renderer: CSSRendering>(
     _ value: consuming Self,
-    into renderer: consuming Renderer<Writer>
+    into renderer: inout Renderer
   ) {
-    Body._render(value.body, into: renderer)
+    Body._render(value.body, into: &renderer)
   }
 }
 
@@ -32,11 +32,19 @@ extension Never: CSS {
 }
 
 extension CSS {
-  consuming func render<Writer: StyleSheetWriter>(
-    into writer: Writer = CSSTextWriter(),
+  consuming func render<Renderer: CSSRendering>(
+    into renderer: inout Renderer,
     using charset: StyleSheetConfiguration = .init()
-  ) -> Writer.Output {
-    Self._render(self, into: Renderer(writer))
-    return writer.finish()
+  ) -> Renderer.Output {
+    Self._render(self, into: &renderer)
+    return renderer.finish()
+  }
+
+  consuming func render(
+    using charset: StyleSheetConfiguration = .init()
+  ) -> _CSSTextRenderer.Output {
+    var renderer = _CSSTextRenderer()
+    Self._render(self, into: &renderer)
+    return renderer.finish()
   }
 }

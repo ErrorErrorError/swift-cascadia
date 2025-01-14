@@ -3,7 +3,7 @@ public struct Attribute: Selector {
   public var name: String
   public var value: Value?
 
-  @_spi(CascadiaCore)
+  @_spi(Core)
   @inlinable @inline(__always)
   public var body: Never {
     neverBody(Self.self)
@@ -29,32 +29,34 @@ public struct Attribute: Selector {
     )
   }
 
-  @_spi(CascadiaCore)
+  @_spi(Renderer)
   @inlinable @inline(__always)
-  public static func _render<Writer: StyleSheetWriter>(
+  public static func _render<Renderer: CSSRendering>(
     _ selector: consuming Self,
-    into renderer: consuming Renderer<Writer>
+    into renderer: inout Renderer
   ) {
-    var renderer = renderer.selector()
-    renderer.add(0x5B) // [
-    renderer.add(selector.name)
-    if let value = selector.value {
-      renderer.add(value.operator.token)
-      renderer.add(0x3D) // =
-      renderer.add(0x22) // "
-      renderer.add(value.rawValue)
-      renderer.add(0x22) // "
+    renderer.selector { renderer in
+      renderer.write(0x5B) // [
+      renderer.write(contentsOf: selector.name.utf8)
+      if let value = selector.value {
+        renderer.write(contentsOf: value.operator.token.utf8)
+        renderer.write(0x3D) // =
+        renderer.write(0x22) // "
+        renderer.write(contentsOf: value.rawValue.utf8)
+        renderer.write(0x22) // "
 
-      if let caseSensitive = value.caseSensitive {
-        renderer.addSpace(canOmit: false)
-        if caseSensitive {
-          renderer.add(0x69) // i
-        } else {
-          renderer.add(0x73) // s
+        if let caseSensitive = value.caseSensitive {
+          renderer.write(0x20)
+          // renderer.addSpace(canOmit: false)
+          if caseSensitive {
+            renderer.write(0x69) // i
+          } else {
+            renderer.write(0x73) // s
+          }
         }
       }
+      renderer.write(0x5D) // ]
     }
-    renderer.add(0x5D) // ]
   }
 
   public struct Value: Sendable {

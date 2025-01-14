@@ -1,26 +1,22 @@
-@testable import Cascadia
+@testable @_spi(Renderer) import Cascadia
 import Testing
 
 @Test func renderAtRule() {
-  let writer = CSSTextWriter()
-  let renderer = Renderer(writer)
+  var renderer = _CSSTextRenderer()
   renderer.statement("import", value: "\"test.css\"", use: true)
 
-  #expect(writer.finish() == "@import \"test.css\";")
+  #expect(renderer.finish() == "@import \"test.css\";")
 }
 
 @Test func renderDeclaration() {
-  let writer = CSSTextWriter()
-  let renderer = Renderer(writer)
-
+  var renderer = _CSSTextRenderer()
   renderer.declaration("test", value: "value")
 
-  #expect(writer.finish() == "test: value;")
+  #expect(renderer.finish() == "test: value;")
 }
 
 @Test func renderBlockRule() async throws {
-  let writer = CSSTextWriter()
-  let renderer = Renderer(writer)
+  var renderer = _CSSTextRenderer()
 
   renderer.block("*") { b in
     b.declaration("color", value: "red")
@@ -35,5 +31,5 @@ import Testing
     }
   }
 
-  #expect(writer.finish() == "* {color: red;background: red;.all {hey: bye;}.container {test: value;}}")
+  #expect(renderer.finish() == "* {color: red;background: red;.all {hey: bye;}.container {test: value;}}")
 }

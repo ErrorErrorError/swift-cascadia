@@ -38,10 +38,10 @@ public struct EmptyCSS: CSS, Sendable {
     neverBody(Self.self)
   }
 
-  @_spi(CascadiaCore)
-  public static func _render<Writer: StyleSheetWriter>(
+  @_spi(Renderer)
+  public static func _render<Renderer: CSSRendering>(
     _ value: consuming Self,
-    into renderer: consuming Renderer<Writer>
+    into renderer: inout Renderer
   ) {
   }
 }
@@ -59,14 +59,14 @@ public struct CSSTuple<each Child: CSS>: CSS {
     neverBody(Self.self)
   }
 
-  @_spi(CascadiaCore)
-  public static func _render<Writer: StyleSheetWriter>(
+  @_spi(Renderer)
+  public static func _render<Renderer: CSSRendering>(
     _ value: consuming Self,
-    into renderer: consuming Renderer<Writer>
+    into renderer: inout Renderer
   ) {
     for value in repeat each value.values {
       func render<T: CSS>(_ value: T) {
-        T._render(value, into: Renderer(renderer.writer))
+        T._render(value, into: &renderer)
       }
 
       render(value)
@@ -85,16 +85,16 @@ public enum _CSSConditional<TrueContent: CSS, FalseContent: CSS>: CSS {
     neverBody(Self.self)
   }
 
-  @_spi(CascadiaCore)
-  public static func _render<Writer: StyleSheetWriter>(
+  @_spi(Renderer)
+  public static func _render<Renderer: CSSRendering>(
     _ value: consuming Self,
-    into renderer: consuming Renderer<Writer>
+    into renderer: inout Renderer
   ) {
     switch value {
       case .trueContent(let value):
-        TrueContent._render(value, into: renderer)
+        TrueContent._render(value, into: &renderer)
       case .falseContent(let value):
-        FalseContent._render(value, into: renderer)
+        FalseContent._render(value, into: &renderer)
     }
   }
 }
@@ -107,15 +107,15 @@ extension Optional: CSS where Wrapped: CSS {
     neverBody(Self.self)
   }
 
-  @_spi(CascadiaCore)
-  public static func _render<Writer: StyleSheetWriter>(
+  @_spi(Renderer)
+  public static func _render<Renderer: CSSRendering>(
     _ value: consuming Self,
-    into renderer: consuming Renderer<Writer>
+    into renderer: inout Renderer
   ) {
     guard let value else {
       return
     }
-    Wrapped._render(value, into: renderer)
+    Wrapped._render(value, into: &renderer)
   }
 }
 

@@ -5,7 +5,7 @@ public struct Chain<Parent: Selector, Child: Selector>: Selector {
   public var parent: Parent
   public var child: Child
 
-  @_spi(CascadiaCore)
+  @_spi(Core)
   @inlinable @inline(__always)
   public var body: Never {
     neverBody(Self.self)
@@ -17,14 +17,15 @@ public struct Chain<Parent: Selector, Child: Selector>: Selector {
     self.child = child
   }
 
-  @_spi(CascadiaCore)
+  @_spi(Renderer)
   @inlinable @inline(__always)
-  public static func _render<Writer: StyleSheetWriter>(
+  public static func _render<Renderer: CSSRendering>(
     _ selector: consuming Self,
-    into renderer: consuming Renderer<Writer>
+    into renderer: inout Renderer
   ) {
-    var renderer = renderer.selector()
-    renderer.join(selector.parent, selector.child)
+    renderer.selector { renderer in
+      renderer.join(selector.parent, selector.child)
+    }
   }
 }
 

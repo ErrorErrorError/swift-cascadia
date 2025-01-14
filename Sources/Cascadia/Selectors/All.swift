@@ -1,7 +1,7 @@
 /// Selects all elements
 public struct All: Selector, Sendable {
 
-  @_spi(CascadiaCore)
+  @_spi(Core)
   @inlinable @inline(__always)
   public var body: Never {
     neverBody(Self.self)
@@ -10,14 +10,15 @@ public struct All: Selector, Sendable {
   @inlinable @inline(__always)
   public init() {}
 
-  @_spi(CascadiaCore)
+  @_spi(Renderer)
   @inlinable @inline(__always)
-  public static func _render<Writer: StyleSheetWriter>(
-    _ selector: consuming Self,
-    into renderer: consuming Renderer<Writer>
+  public static func _render<Renderer: CSSRendering>(
+    _: consuming Self,
+    into renderer: inout Renderer
   ) {
-    var renderer = renderer.selector()
-    renderer.add(0x2A)  // *
+    renderer.selector { selector in
+      selector.write(0x2A)  // *      
+    }
   }
 }
 

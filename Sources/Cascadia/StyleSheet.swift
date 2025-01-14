@@ -1,29 +1,53 @@
-/// A CSS that can contain statement
-public protocol StyleSheet: CSS where Body: Rule {
+/// A Style Sheet
+public protocol StyleSheet {
+  associatedtype Body: Rule
+
   @CSSBuilder
-  var body: Body { get }
+  var body: Self.Body { get }
 }
 
-public extension StyleSheet {
-  consuming func render<Writer: StyleSheetWriter>(
-    into writer: Writer = CSSTextWriter(), 
+extension StyleSheet {
+  @inlinable @inline(__always)
+  public consuming func render<Renderer: CSSRendering>(
+    into renderer: inout Renderer, 
     using options: consuming StyleSheetConfiguration = .init()
-  ) -> Writer.Output {
-    stylesheet(into: writer, options: options) {
+  ) -> Renderer.Output {
+    stylesheet(into: &renderer, options: options) {
+      self.body
+    }
+  }
+
+  @inlinable @inline(__always)
+  public consuming func render(
+    using options: consuming StyleSheetConfiguration = .init()
+  ) -> String {
+    stylesheet(options: options) {
       self.body
     }
   }
 }
 
-/// A public interface used to render Cascading Style Sheets
-public func stylesheet<Writer: StyleSheetWriter, Content: Rule>(
-  into writer: Writer = CSSTextWriter(),
+/// A public interface used to render Cascading Style Sheets (CSS).
+public func stylesheet<Renderer: CSSRendering, Content: Rule>(
+  into renderer: inout Renderer,
   options: consuming StyleSheetConfiguration = .init(),
   @CSSBuilder content: () -> Content 
-) -> Writer.Output {
-  var renderer = Renderer(writer)
-  Content._render(content(), into: renderer)
-  return writer.finish()
+) -> Renderer.Output {
+  Content._render(content(), into: &renderer)
+  return renderer.finish()
+}
+
+/// A public interface used to render Cascading Style Sheets (CSS) into a String.
+/// - Parameters:
+///   - options: StyleSheet options
+///   - content: 
+/// - Returns: A StyleSheet string based on the options provided.
+public func stylesheet<Content: Rule>(
+  options: consuming StyleSheetConfiguration = .init(),
+  @CSSBuilder content: () -> Content
+) -> String {
+  var renderer = _CSSTextRenderer()
+  return stylesheet(into: &renderer, options: options, content: content)
 }
 
 public struct StyleSheetConfiguration: Hashable, Sendable {
