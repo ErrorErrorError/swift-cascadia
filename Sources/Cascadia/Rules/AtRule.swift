@@ -59,7 +59,7 @@ public struct AtRule<ID: AtRuleIdentifier, Content: Rule>: Rule {
         ID.identifier,
         value: value.rawValue
       ) { renderer in
-        // Content._render(content, into: renderer)
+        Content._render(content, into: &renderer)
       }
     default:
       break
