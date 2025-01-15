@@ -26,17 +26,17 @@ public struct Pseudo: Selector, Sendable {
 
   @_spi(Renderer)
   @inlinable @inline(__always)
-  public static func _render<Renderer: CSSRendering>(
+  public static func _render<Writer: CSSStreamWriter>(
     _ selector: consuming Self,
-    into renderer: inout Renderer
+    into renderer: inout Renderer<Writer>
   ) {
     renderer.selector { renderer in
       renderer.write(0x3A)  // :
-      let (requiresColon, identifier, value) = switch selector.value {
+      let (additonalColon, identifier, value) = switch selector.value {
       case let .class(pseudo): (false, pseudo.identifier, pseudo.value)
       case let .element(pseudo): (true, pseudo.identifier, pseudo.value)
       }
-      if requiresColon {
+      if additonalColon {
         renderer.write(0x3A)  // :
       }
       renderer.write(contentsOf: identifier.utf8) // identifier

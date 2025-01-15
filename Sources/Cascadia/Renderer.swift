@@ -1,4 +1,4 @@
-public protocol CSSRendering {
+public protocol CSSStreamWriter {
   /// The output type when ``finish()`` is called.
   associatedtype Output
 
@@ -14,73 +14,81 @@ public protocol CSSRendering {
   consuming func finish() -> Output
 }
 
-extension CSSRendering {
+public extension CSSStreamWriter {
   /// Default implementation of writing a sequence of UInt8
-  public mutating func write<S: Sequence<UInt8>>(contentsOf sequence: consuming S) {
+  mutating func write<S: Sequence<UInt8>>(contentsOf sequence: consuming S) {
     for byte in sequence {
       write(byte)
     }
   }
 
   /// Default implementation of finishing writing a stylesheet.
-  public consuming func finish() where Output == Void {}
+  consuming func finish() where Output == Void {}
 }
 
-/// Renderering functions
 @_spi(Renderer)
-extension CSSRendering {
+public struct Renderer<Writer: CSSStreamWriter> {
+  let writer: UnsafeMutablePointer<Writer>
+  let config: StyleSheetConfiguration
+  var context = Context()
+
+  init(_ writer: UnsafeMutablePointer<Writer>, config: StyleSheetConfiguration) {
+    self.writer = writer
+    self.config = config
+  }
+
   public mutating func declaration(
     _ identifier: consuming String,
     value: consuming String,
     important: Bool = false
   ) {
-    write(contentsOf: identifier.utf8)
-    write(0x3A) // :
-    write(0x20) // spacer
-    write(contentsOf: value.utf8)
-    if (important) {
-      write(0x20) // spacer
-      write(0x21) // !
-      write(contentsOf: "important".utf8)
+    prependIfNeeded()
+    writer.pointee.write(contentsOf: identifier.utf8)
+    writer.pointee.write(0x3A) // :
+    writer.pointee.write(0x20) // spacer (optional)
+    writer.pointee.write(contentsOf: value.utf8)
+    if important {
+      writer.pointee.write(0x20) // spacer (optional)
+      writer.pointee.write(0x21) // !
+      writer.pointee.write(contentsOf: "important".utf8)
     }
-    write(0x3B) // ;
+    writer.pointee.write(0x3B) // ;
   }
 
   public mutating func statement(
+    atSymbol: Bool = false,
     _ identifier: consuming String,
-    value: consuming String,
-    use atSymbol: consuming Bool = false
+    value: consuming String
   ) {
-    if atSymbol{ 
-      write(0x40) // `@`
+    prependIfNeeded()
+    if atSymbol {
+      writer.pointee.write(0x40) // `@`
     }
-    write(contentsOf: identifier.utf8)
-    write(0x20) // <spacer>
-    write(contentsOf: value.utf8)
-    write(0x3B) // `;`
+    writer.pointee.write(contentsOf: identifier.utf8)
+    writer.pointee.write(0x20) // <spacer>
+    writer.pointee.write(contentsOf: value.utf8)
+    writer.pointee.write(0x3B) // `;`
   }
 
   /// Renders a block
   ///
   /// <at-keyword-token>?<identifier> <value>? {}
   public mutating func block(
+    atSymbol: Bool = false,
     _ identifier: consuming String,
     value: consuming String? = nil,
-    use atSymbol: consuming Bool = false,
     operation: (inout Self) -> Void
   ) {
-    if atSymbol {
-      write(0x40) // `@`
+    block(operation) { [value, identifier] render in
+      if atSymbol {
+        render.writer.pointee.write(0x40) // `@`
+      }
+      render.writer.pointee.write(contentsOf: identifier.utf8)
+      if let value {
+        render.writer.pointee.write(0x20) // <spacer>
+        render.writer.pointee.write(contentsOf: value.utf8)
+      }
     }
-    write(contentsOf: identifier.utf8)
-    write(0x20) // <spacer>
-    if let value {
-      write(contentsOf: value.utf8)
-      write(0x20) // <spacer>
-    }
-    write(0x7B) // {
-    operation(&self)
-    write(0x7D) // }
   }
 
   /// Renders a block with the given selector
@@ -88,58 +96,111 @@ extension CSSRendering {
     _ selector: consuming S,
     operation: (inout Self) -> Void
   ) {
-    S._render(selector, into: &self)
-    write(0x20) // <spacer>
-    write(0x7B) // {
-    operation(&self)
-    write(0x7D) // }
+    block(operation) { [selector] render in
+      S._render(selector, into: &render)
+    }
   }
 
-  public mutating func selector(operation: (inout _SelectorRenderer) -> Void) {
-    var renderer = _SelectorRenderer()
-    operation(&renderer)
-    self.write(contentsOf: renderer.bytes)
+  private mutating func block(
+    _ operation: (inout Self) -> Void, 
+    render identifier: (inout Self) -> Void
+  ) {
+    prependIfNeeded()
+    identifier(&self)
+    writer.pointee.write(0x20) // <spacer> (remove if minify)
+    writer.pointee.write(0x7B) // {
+    context.increment()
+    operation(&self)
+    context.decrement()
+    prependIfNeeded()
+    writer.pointee.write(0x7D) // }
+  }
+
+  public mutating func selector(operation: (inout _SelectorRenderer<Writer>) -> Void) {
+    withUnsafeMutablePointer(to: &self) { renderer in
+      var renderer = _SelectorRenderer(renderer: renderer)
+      operation(&renderer)
+    }
+  }
+
+  private mutating func prependIfNeeded() {
+    if context.hasRenderedLines, config.indent != .minify {
+      writer.pointee.write(0x0A) // line-feed
+    }
+
+    switch config.indent {
+    case .minify: break
+    case let .tabs(count):
+      writer.pointee.write(contentsOf: repeatElement(0x09, count: Int(count) * Int(context.depth))) // `  `
+    case let .spaces(count):
+      writer.pointee.write(contentsOf: repeatElement(0x20, count: Int(count) * Int(context.depth))) // ` `
+    }
+    context.hasRenderedLines = true
+  }
+
+  private mutating func addWhitespaceIfNeeded() {
+    switch config.indent {
+    case .minify: break
+    default: writer.pointee.write(0x20)
+    }
+  }
+
+  public struct Context: Sendable {
+    var depth: UInt = 0
+    var hasRenderedLines = false
+
+    public var isNested: Bool { depth > 0 }
+
+    mutating func increment() {
+      depth += 1
+    }
+
+    mutating func decrement() {
+      depth -= 1
+    }
   }
 }
 
+/// A renderer for selector.
 @_spi(Renderer)
-public struct _SelectorRenderer: CSSRendering {
-  var bytes: [UInt8] = []
+public struct _SelectorRenderer<Writer: CSSStreamWriter>: CSSStreamWriter {
+  let renderer: UnsafeMutablePointer<Renderer<Writer>>
 
   public mutating func write(_ byte: UInt8) {
-    self.bytes.append(byte)
+    renderer.pointee.writer.pointee.write(byte)
   }
 
   public mutating func write<S: Sequence<UInt8>>(contentsOf sequence: S) {
-    self.bytes.append(contentsOf: sequence)
+    renderer.pointee.writer.pointee.write(contentsOf: sequence)
   }
 
   public mutating func join<S0: Selector, S1: Selector>(_ s0: S0, _ s1: S1, separator: UInt8? = nil) {
-    S0._render(s0, into: &self)
-    if let separator {
+    S0._render(s0, into: &renderer.pointee)
+    if let separator: UInt8 {
       if separator != 0x20 { write(0x20) }
       write(separator)
-      if separator != 0x20 { write(0x20) } 
+      if separator != 0x20 { write(0x20) }
     }
-    S1._render(s1, into: &self)
+    S1._render(s1, into: &renderer.pointee)
   }
 }
 
+/// A text writer that outputs a string
 @_spi(Renderer)
-public struct _CSSTextRenderer: Sendable, CSSRendering {
+public struct _TextBufferWriter: Sendable, CSSStreamWriter {
   public init() {}
 
-  private var bytes: [UInt8] = []
+  private var result: [UInt8] = []
 
   public mutating func write(_ byte: consuming UInt8) {
-    bytes.append(byte)
+    result.append(byte)
   }
 
   public mutating func write<S: Sequence<UInt8>>(contentsOf sequence: consuming S) {
-    bytes.append(contentsOf: sequence)
+    result.append(contentsOf: sequence)
   }
 
   public consuming func finish() -> String {
-    return String(decoding: bytes, as: UTF8.self)
+    return String(decoding: result, as: UTF8.self)
   }
 }

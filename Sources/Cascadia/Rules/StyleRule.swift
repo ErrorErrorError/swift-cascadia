@@ -20,9 +20,9 @@ public struct StyleRule<S: Selector, Content: Block>: Rule, Block {
   }
 
   @_spi(Renderer)
-  public static func _render<Renderer: CSSRendering>(
+  public static func _render<Writer: CSSStreamWriter>(
     _ style: consuming Self,
-    into renderer: inout Renderer
+    into renderer: inout Renderer<Writer>
   ) {
     renderer.block(style.selector) { block in
       Content._render(style.content, into: &block)

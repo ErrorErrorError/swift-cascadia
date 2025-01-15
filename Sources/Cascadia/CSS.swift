@@ -5,19 +5,19 @@ public protocol CSS {
   var body: Self.Body { get }
 
   @_spi(Renderer)
-  static func _render<Renderer: CSSRendering>(
+  static func _render<Writer: CSSStreamWriter>(
     _ value: consuming Self,
-    into renderer: inout Renderer
+    into renderer: inout Renderer<Writer>
   )
 }
 
 extension CSS {
   // TODO: Hide `CSS/_render` static function from autocompletion.
-  // @_spi(Renderer)
+  @_spi(Renderer)
   @_documentation(visibility: internal)
-  public static func _render<Renderer: CSSRendering>(
+  public static func _render<Writer: CSSStreamWriter>(
     _ value: consuming Self,
-    into renderer: inout Renderer
+    into renderer: inout Renderer<Writer>
   ) {
     Body._render(value.body, into: &renderer)
   }
@@ -31,20 +31,19 @@ extension Never: CSS {
   }
 }
 
+/// Used for testing
 extension CSS {
-  consuming func render<Renderer: CSSRendering>(
-    into renderer: inout Renderer,
-    using charset: StyleSheetConfiguration = .init()
-  ) -> Renderer.Output {
+  func render<Writer: CSSStreamWriter>(
+    into writer: inout Writer,
+    using config: consuming StyleSheetConfiguration = .init()
+  ) -> Writer.Output {
+    var renderer = Renderer(&writer, config: config)
     Self._render(self, into: &renderer)
-    return renderer.finish()
+    return writer.finish()
   }
 
-  consuming func render(
-    using charset: StyleSheetConfiguration = .init()
-  ) -> _CSSTextRenderer.Output {
-    var renderer = _CSSTextRenderer()
-    Self._render(self, into: &renderer)
-    return renderer.finish()
+  func render(using config: consuming StyleSheetConfiguration = .init()) -> String {
+    var writer = _TextBufferWriter()
+    return self.render(into: &writer, using: config)
   }
 }

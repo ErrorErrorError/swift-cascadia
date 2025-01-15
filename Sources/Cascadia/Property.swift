@@ -49,9 +49,9 @@ public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral, 
 
   @_spi(Renderer)
   @inlinable @inline(__always)
-  public static func _render<Renderer: CSSRendering>(
+  public static func _render<Writer: CSSStreamWriter>(
     _ value: consuming Self,
-    into renderer: inout Renderer
+    into renderer: inout Renderer<Writer>
   ) {
     renderer.declaration(
       ID.identifier, 

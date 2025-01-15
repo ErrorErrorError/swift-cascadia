@@ -39,9 +39,9 @@ public struct EmptyCSS: CSS, Sendable {
   }
 
   @_spi(Renderer)
-  public static func _render<Renderer: CSSRendering>(
+  public static func _render<Writer: CSSStreamWriter>(
     _ value: consuming Self,
-    into renderer: inout Renderer
+    into renderer: inout Renderer<Writer>
   ) {
   }
 }
@@ -60,9 +60,9 @@ public struct CSSTuple<each Child: CSS>: CSS {
   }
 
   @_spi(Renderer)
-  public static func _render<Renderer: CSSRendering>(
+  public static func _render<Writer: CSSStreamWriter>(
     _ value: consuming Self,
-    into renderer: inout Renderer
+    into renderer: inout Renderer<Writer>
   ) {
     for value in repeat each value.values {
       func render<T: CSS>(_ value: T) {
@@ -86,9 +86,9 @@ public enum _CSSConditional<TrueContent: CSS, FalseContent: CSS>: CSS {
   }
 
   @_spi(Renderer)
-  public static func _render<Renderer: CSSRendering>(
+  public static func _render<Writer: CSSStreamWriter>(
     _ value: consuming Self,
-    into renderer: inout Renderer
+    into renderer: inout Renderer<Writer>
   ) {
     switch value {
       case .trueContent(let value):
@@ -101,16 +101,15 @@ public enum _CSSConditional<TrueContent: CSS, FalseContent: CSS>: CSS {
 
 extension _CSSConditional: Sendable where TrueContent: Sendable, FalseContent: Sendable {}
 
-
 extension Optional: CSS where Wrapped: CSS {
   public var body: Never {
     neverBody(Self.self)
   }
 
   @_spi(Renderer)
-  public static func _render<Renderer: CSSRendering>(
+  public static func _render<Writer: CSSStreamWriter>(
     _ value: consuming Self,
-    into renderer: inout Renderer
+    into renderer: inout Renderer<Writer>
   ) {
     guard let value else {
       return

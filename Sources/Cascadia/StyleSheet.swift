@@ -8,33 +8,21 @@ public protocol StyleSheet {
 
 extension StyleSheet {
   @inlinable @inline(__always)
-  public consuming func render<Renderer: CSSRendering>(
-    into renderer: inout Renderer, 
-    using options: consuming StyleSheetConfiguration = .init()
-  ) -> Renderer.Output {
-    stylesheet(into: &renderer, options: options) {
+  public consuming func render<Writer: CSSStreamWriter>(
+    into writer: inout Writer, 
+    using config: consuming StyleSheetConfiguration = .init()
+  ) -> Writer.Output {
+    stylesheet(into: &writer, using: config) {
       self.body
     }
   }
 
   @inlinable @inline(__always)
-  public consuming func render(
-    using options: consuming StyleSheetConfiguration = .init()
-  ) -> String {
-    stylesheet(options: options) {
+  public consuming func render(using config: consuming StyleSheetConfiguration = .init()) -> String {
+    stylesheet(using: config) {
       self.body
     }
   }
-}
-
-/// A public interface used to render Cascading Style Sheets (CSS).
-public func stylesheet<Renderer: CSSRendering, Content: Rule>(
-  into renderer: inout Renderer,
-  options: consuming StyleSheetConfiguration = .init(),
-  @CSSBuilder content: () -> Content 
-) -> Renderer.Output {
-  Content._render(content(), into: &renderer)
-  return renderer.finish()
 }
 
 /// A public interface used to render Cascading Style Sheets (CSS) into a String.
@@ -43,33 +31,34 @@ public func stylesheet<Renderer: CSSRendering, Content: Rule>(
 ///   - content: 
 /// - Returns: A StyleSheet string based on the options provided.
 public func stylesheet<Content: Rule>(
-  options: consuming StyleSheetConfiguration = .init(),
+  using config: consuming StyleSheetConfiguration = .init(),
   @CSSBuilder content: () -> Content
 ) -> String {
-  var renderer = _CSSTextRenderer()
-  return stylesheet(into: &renderer, options: options, content: content)
+  var renderer = _TextBufferWriter()
+  return stylesheet(into: &renderer, using: config, content: content)
+}
+
+/// A public interface used to render Cascading Style Sheets (CSS).
+public func stylesheet<Writer: CSSStreamWriter, Content: Rule>(
+  into writer: inout Writer,
+  using config: consuming StyleSheetConfiguration = .init(),
+  @CSSBuilder content: () -> Content 
+) -> Writer.Output {
+  var renderer = Renderer(&writer, config: config)
+  Content._render(content(), into: &renderer)
+  return writer.finish()
 }
 
 public struct StyleSheetConfiguration: Hashable, Sendable {
-  public var minify: Bool
-  public var indent: UInt
-  public var charset: Charset
+  public var indent: Indent
 
-  public init(
-    minify: Bool = false,
-    indent: UInt = 2,
-    charset: Charset = .utf8
-  ) {
-    self.minify = minify
-    self.indent = indent
-    self.charset = charset
+  public enum Indent: Hashable, Sendable {
+    case minify
+    case tabs(UInt = 1)
+    case spaces(UInt = 2)
   }
 
-  public enum Charset: Hashable, Sendable {
-    /// UTF-8
-    case utf8
-
-    /// ISO 8559-15 (Latin-9)
-    case iso8559_15
+  public init(indent: Indent = .spaces(2)) {
+    self.indent = indent
   }
 }

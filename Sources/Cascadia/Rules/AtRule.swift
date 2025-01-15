@@ -42,24 +42,24 @@ public struct AtRule<ID: AtRuleIdentifier, Content: Rule>: Rule {
   }
 
   @_spi(Renderer)
-  public static func _render<Renderer: CSSRendering>(
+  public static func _render<Writer: CSSStreamWriter>(
     _ statement: consuming Self,
-    into renderer: inout Renderer
+    into renderer: inout Renderer<Writer>
   ) {
     switch statement.storage {
     case let .statement(value):
       return renderer.statement(
+        atSymbol: true,
         ID.identifier,
-        value: value.rawValue,
-        use: true
+        value: value.rawValue
       )
     case let .block(.some(value), content):
       renderer.block(
+        atSymbol: true,
         ID.identifier,
-        value: value.rawValue,
-        use: true
-      ) { block in
-        Content._render(content, into: &block)
+        value: value.rawValue
+      ) { renderer in
+        // Content._render(content, into: renderer)
       }
     default:
       break

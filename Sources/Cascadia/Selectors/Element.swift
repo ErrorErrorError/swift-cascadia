@@ -15,9 +15,9 @@ public struct Element: Selector {
 
   @_spi(Renderer)
   @inlinable @inline(__always)
-  public static func _render<Renderer: CSSRendering>(
+  public static func _render<Writer: CSSStreamWriter>(
     _ selector: consuming Self,
-    into renderer: inout Renderer
+    into renderer: inout Renderer<Writer>
   ) {
     renderer.selector { renderer in
       renderer.write(contentsOf: selector.element.rawValue.utf8)  // element
