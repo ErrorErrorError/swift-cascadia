@@ -26,15 +26,16 @@ public extension CSSStreamWriter {
   consuming func finish() where Output == Void {}
 }
 
-// @_spi(Renderer)
 public struct Renderer<Writer: CSSStreamWriter> {
   let writer: UnsafeMutablePointer<Writer>
   let config: StyleSheetConfiguration
 
-  @_spi(Renderer)
-  public internal(set) var context = Context()
+  var context = Context()
 
-  init(_ writer: UnsafeMutablePointer<Writer>, config: StyleSheetConfiguration) {
+  init(
+    _ writer: UnsafeMutablePointer<Writer>, 
+    config: StyleSheetConfiguration
+  ) {
     self.writer = writer
     self.config = config
   }
@@ -48,17 +49,17 @@ extension Renderer {
     value: consuming String,
     important: Bool = false
   ) {
-    prependIfNeeded()
-    writer.pointee.write(contentsOf: identifier.utf8)
-    writer.pointee.write(0x3A) // :
-    writer.pointee.write(0x20) // spacer (optional)
-    writer.pointee.write(contentsOf: value.utf8)
+    write(withIndent: true)
+    write(contentsOf: identifier.utf8)
+    write(0x3A) // :
+    write(0x20) // spacer (optional)
+    write(contentsOf: value.utf8)
     if important {
-      writer.pointee.write(0x20) // spacer (optional)
-      writer.pointee.write(0x21) // !
-      writer.pointee.write(contentsOf: "important".utf8)
+      write(0x20) // spacer (optional)
+      write(0x21) // !
+      write(contentsOf: "important".utf8)
     }
-    writer.pointee.write(0x3B) // ;
+    write(0x3B) // ;
   }
 
   public mutating func statement(
@@ -66,14 +67,14 @@ extension Renderer {
     _ identifier: consuming String,
     value: consuming String
   ) {
-    prependIfNeeded()
+    write(withIndent: true)
     if atSymbol {
       writer.pointee.write(0x40) // `@`
     }
-    writer.pointee.write(contentsOf: identifier.utf8)
-    writer.pointee.write(0x20) // <spacer>
-    writer.pointee.write(contentsOf: value.utf8)
-    writer.pointee.write(0x3B) // `;`
+    write(contentsOf: identifier.utf8)
+    write(0x20) // <spacer>
+    write(contentsOf: value.utf8)
+    write(0x3B) // `;`
   }
 
   /// Renders a block
@@ -85,16 +86,19 @@ extension Renderer {
     value: consuming String? = nil,
     operation: (inout Self) -> Void
   ) {
-    block(operation) { [value, identifier] render in
-      if atSymbol {
-        render.writer.pointee.write(0x40) // `@`
-      }
-      render.writer.pointee.write(contentsOf: identifier.utf8)
-      if let value {
-        render.writer.pointee.write(0x20) // <spacer>
-        render.writer.pointee.write(contentsOf: value.utf8)
-      }
+    write(withIndent: true)
+    if atSymbol {
+      self.writer.pointee.write(0x40) // `@`
     }
+    write(contentsOf: identifier.utf8)
+    if let value {
+      write(0x20) // <spacer>
+      write(contentsOf: value.utf8)
+    }
+    write(0x20) // <spacer> (remove if minify)
+    write(0x7B) // {
+    let hasChanges = nested(operation)
+    write(0x7D, withIndent: hasChanges) // }
   }
 
   /// Renders a block with the given selector
@@ -102,24 +106,12 @@ extension Renderer {
     _ selector: consuming S,
     operation: (inout Self) -> Void
   ) {
-    block(operation) { [selector] render in
-      S._render(selector, into: &render)
-    }
-  }
-
-  private mutating func block(
-    _ operation: (inout Self) -> Void, 
-    render identifier: (inout Self) -> Void
-  ) {
-    prependIfNeeded()
-    identifier(&self)
-    writer.pointee.write(0x20) // <spacer> (remove if minify)
-    writer.pointee.write(0x7B) // {
-    context.increment()
-    operation(&self)
-    context.decrement()
-    prependIfNeeded()
-    writer.pointee.write(0x7D) // }
+    write(withIndent: true)
+    S._render(selector, into: &self)
+    write(0x20) // <spacer> (remove if minify)
+    write(0x7B) // {
+    let hasChanges = nested(operation)
+    write(0x7D, withIndent: hasChanges) // }
   }
 
   public mutating func selector(operation: (inout _SelectorRenderer<Writer>) -> Void) {
@@ -129,22 +121,46 @@ extension Renderer {
     }
   }
 
-  private mutating func prependIfNeeded() {
-    if context.hasRenderedLines, config.indent != .minify {
-      writer.pointee.write(0x0A) // line-feed
-    }
-
-    switch config.indent {
-    case .minify: break
-    case let .tabs(count):
-      writer.pointee.write(contentsOf: repeatElement(0x09, count: Int(count) * Int(context.depth))) // `  `
-    case let .spaces(count):
-      writer.pointee.write(contentsOf: repeatElement(0x20, count: Int(count) * Int(context.depth))) // ` `
-    }
-    context.hasRenderedLines = true
+  private mutating func nested(_ operation: (inout Self) -> Void) -> Bool {
+    context.depth += 1
+    context.blockHasContent = false
+    // when the block returns, revert back to parent block having contents
+    defer { context.depth -= 1 }
+    defer { context.blockHasContent = true }
+    operation(&self)
+    return context.blockHasContent
   }
 
-  private mutating func addWhitespaceIfNeeded() {
+  private mutating func write(
+    _ bytes: UInt8..., 
+    withIndent includeIndent: Bool = false
+  ) {
+    self.write(contentsOf: bytes, withIndent: includeIndent)
+  }
+
+  private mutating func write<S: Sequence<UInt8>>(
+    contentsOf bytes: S,
+    withIndent includeIndent: Bool = false
+  ) {
+    if includeIndent {
+      if config.indent != .minify, context.blockHasContent || context.depth > 0 {
+        writer.pointee.write(0x0A) // line-feed
+      }
+
+      switch config.indent {
+      case let .tabs(count):
+        writer.pointee.write(contentsOf: repeatElement(0x09, count: Int(count) * Int(context.depth))) // `  `
+      case let .spaces(count):
+        writer.pointee.write(contentsOf: repeatElement(0x20, count: Int(count) * Int(context.depth))) // ` `
+      case .minify: break
+      }
+    }
+
+    writer.pointee.write(contentsOf: bytes)
+    context.blockHasContent = true
+  }
+
+  private mutating func optionalWhitespace() {
     switch config.indent {
     case .minify: break
     default: writer.pointee.write(0x20)
@@ -152,18 +168,8 @@ extension Renderer {
   }
 
   public struct Context: Sendable {
-    var depth: UInt = 0
-    var hasRenderedLines = false
-
-    public var isNested: Bool { depth > 0 }
-
-    mutating func increment() {
-      depth += 1
-    }
-
-    mutating func decrement() {
-      depth -= 1
-    }
+    var depth = 0
+    var blockHasContent = false
   }
 }
 

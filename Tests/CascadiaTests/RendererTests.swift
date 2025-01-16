@@ -27,11 +27,12 @@ struct RendererTests {
       b.declaration("background", value: "red")
 
       b.block(".all") { n in
-        n.declaration("hey", value: "bye")
+        n.block("div") { _ in }
+        // n.declaration("hey", value: "bye")
       }
 
       b.block(".container") { n in
-        n.declaration("test", value: "value")
+        // n.declaration("test", value: "value")
       }
     }
 
@@ -40,11 +41,9 @@ struct RendererTests {
       color: red;
       background: red;
       .all {
-        hey: bye;
+        div {}
       }
-      .container {
-        test: value;
-      }
+      .container {}
     }
     """)
   }
