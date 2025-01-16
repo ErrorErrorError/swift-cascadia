@@ -8,7 +8,7 @@ public protocol Property {
 }
 
 /// A property-value pair
-public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral, Block {
+public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral {
   public typealias ID = ID
 
   public var identifier: String { ID.identifier }
@@ -46,18 +46,14 @@ public struct Declaration<ID: Property>: Equatable, ExpressibleByStringLiteral, 
     self.isImportant = true
     return self
   }
+}
 
-  @_spi(Renderer)
-  @inlinable @inline(__always)
-  public static func _render<Writer: CSSStreamWriter>(
-    _ value: consuming Self,
-    into renderer: inout Renderer<Writer>
-  ) {
-    renderer.declaration(
-      ID.identifier, 
-      value: value.rawValue, 
-      important: value.isImportant
-    )
+extension Declaration {
+  func render() -> String {
+    var writer = _TextBufferWriter()
+    var renderer = Renderer(&writer, config: .init())
+    renderer.declaration(self.identifier, value: self.rawValue, important: self.isImportant)
+    return writer.finish()
   }
 }
 
