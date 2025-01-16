@@ -27,12 +27,12 @@ struct RendererTests {
       b.declaration("background", value: "red")
 
       b.block(".all") { n in
+        n.declaration("hey", value: "bye")
         n.block("div") { _ in }
-        // n.declaration("hey", value: "bye")
       }
 
       b.block(".container") { n in
-        // n.declaration("test", value: "value")
+        n.declaration("test", value: "value")
       }
     }
 
@@ -41,9 +41,12 @@ struct RendererTests {
       color: red;
       background: red;
       .all {
+        hey: bye;
         div {}
       }
-      .container {}
+      .container {
+        test: value;
+      }
     }
     """)
   }
@@ -65,6 +68,6 @@ struct RendererTests {
       }
     }
 
-    #expect(writer.finish() == "* {color: red;background: red;.all {hey: bye;}.container {test: value;}}")
+    #expect(writer.finish() == "*{color:red;background:red;.all{hey:bye;}.container{test:value;}}")
   }
 }

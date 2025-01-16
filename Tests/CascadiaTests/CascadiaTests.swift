@@ -17,7 +17,7 @@ struct CascadiaTests {
       }
     }
 
-    #expect(result == #"@charset "UTF-8";@import "style.css";* {background: red;.container {color: red;}}"#)
+    #expect(result == #"@charset "UTF-8";@import "style.css";*{background:red;.container{color:red;}}"#)
   }
 
   @Test func minifiedCustomStylesheet() async throws {
@@ -36,7 +36,7 @@ struct CascadiaTests {
       }
     }
 
-    #expect(CustomSheet().render(using: .init(indent: .minify)) == #"@charset "UTF-8";@import "style.css";* {background: red;.container {color: red;}}"#)
+    #expect(CustomSheet().render(using: .init(indent: .minify)) == #"@charset "UTF-8";@import "style.css";*{background:red;.container{color:red;}}"#)
   }
 
   @Test func spacingStylesheet() async throws {

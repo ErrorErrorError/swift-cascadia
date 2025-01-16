@@ -52,10 +52,10 @@ extension Renderer {
     write(withIndent: true)
     write(contentsOf: identifier.utf8)
     write(0x3A) // :
-    write(0x20) // spacer (optional)
+    writeSpacing(optional: true) // <space> (optional)
     write(contentsOf: value.utf8)
     if important {
-      write(0x20) // spacer (optional)
+      writeSpacing(optional: true) // <space> (optional)
       write(0x21) // !
       write(contentsOf: "important".utf8)
     }
@@ -72,7 +72,7 @@ extension Renderer {
       writer.pointee.write(0x40) // `@`
     }
     write(contentsOf: identifier.utf8)
-    write(0x20) // <spacer>
+    writeSpacing() // <spacer>
     write(contentsOf: value.utf8)
     write(0x3B) // `;`
   }
@@ -92,10 +92,10 @@ extension Renderer {
     }
     write(contentsOf: identifier.utf8)
     if let value {
-      write(0x20) // <spacer>
+      writeSpacing() // <spacer>
       write(contentsOf: value.utf8)
     }
-    write(0x20) // <spacer> (remove if minify)
+    writeSpacing(optional: true)  // <space> (optional)
     write(0x7B) // {
     let hasChanges = nested(operation)
     write(0x7D, withIndent: hasChanges) // }
@@ -108,7 +108,7 @@ extension Renderer {
   ) {
     write(withIndent: true)
     S._render(selector, into: &self)
-    write(0x20) // <spacer> (remove if minify)
+    writeSpacing(optional: true) // <spacer> (remove if minify)
     write(0x7B) // {
     let hasChanges = nested(operation)
     write(0x7D, withIndent: hasChanges) // }
@@ -160,11 +160,11 @@ extension Renderer {
     context.blockHasContent = true
   }
 
-  private mutating func optionalWhitespace() {
-    switch config.indent {
-    case .minify: break
-    default: writer.pointee.write(0x20)
+  private mutating func writeSpacing(optional: Bool = false) {
+    guard !optional || config.indent != .minify else {
+      return
     }
+    write(0x20)
   }
 
   public struct Context: Sendable {
