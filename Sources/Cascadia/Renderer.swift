@@ -26,17 +26,23 @@ public extension CSSStreamWriter {
   consuming func finish() where Output == Void {}
 }
 
-@_spi(Renderer)
+// @_spi(Renderer)
 public struct Renderer<Writer: CSSStreamWriter> {
   let writer: UnsafeMutablePointer<Writer>
   let config: StyleSheetConfiguration
-  var context = Context()
+
+  @_spi(Renderer)
+  public internal(set) var context = Context()
 
   init(_ writer: UnsafeMutablePointer<Writer>, config: StyleSheetConfiguration) {
     self.writer = writer
     self.config = config
   }
+}
 
+/// Render functions
+@_spi(Renderer)
+extension Renderer {
   public mutating func declaration(
     _ identifier: consuming String,
     value: consuming String,
@@ -162,10 +168,12 @@ public struct Renderer<Writer: CSSStreamWriter> {
 }
 
 /// A renderer for selector.
-@_spi(Renderer)
 public struct _SelectorRenderer<Writer: CSSStreamWriter>: CSSStreamWriter {
   let renderer: UnsafeMutablePointer<Renderer<Writer>>
+}
 
+@_spi(Renderer)
+extension _SelectorRenderer {
   public mutating func write(_ byte: UInt8) {
     renderer.pointee.writer.pointee.write(byte)
   }
@@ -186,13 +194,12 @@ public struct _SelectorRenderer<Writer: CSSStreamWriter>: CSSStreamWriter {
 }
 
 /// A text writer that outputs a string
-@_spi(Renderer)
-public struct _TextBufferWriter: Sendable, CSSStreamWriter {
-  public init() {}
+struct _TextBufferWriter: Sendable, CSSStreamWriter {
+  init() {}
 
   private var result: [UInt8] = []
 
-  public mutating func write(_ byte: consuming UInt8) {
+  mutating func write(_ byte: consuming UInt8) {
     result.append(byte)
   }
 

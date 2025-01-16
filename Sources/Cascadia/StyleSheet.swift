@@ -1,10 +1,5 @@
 /// A Style Sheet
-public protocol StyleSheet {
-  associatedtype Body: Rule
-
-  @CSSBuilder
-  var body: Self.Body { get }
-}
+public protocol StyleSheet: CSS where Body: Rule {}
 
 extension StyleSheet {
   @inlinable @inline(__always)

@@ -13,8 +13,7 @@ public protocol CSS {
 
 extension CSS {
   // TODO: Hide `CSS/_render` static function from autocompletion.
-  @_spi(Renderer)
-  @_documentation(visibility: internal)
+  // @_spi(Renderer)
   public static func _render<Writer: CSSStreamWriter>(
     _ value: consuming Self,
     into renderer: inout Renderer<Writer>
