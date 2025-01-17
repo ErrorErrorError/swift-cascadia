@@ -1,37 +1,39 @@
-extension CSSProperty {
-  public enum Color: Property, ColorRepresentable {
-    public static let identifier = "color"
+public struct Color: Declaration, ColorRepresentable {
+  public static let identifier = "color"
+  public var value: Value
+
+  public init(_ value: Value) {
+    self.value = value
   }
 }
-
-public typealias Color = CSSProperty.Color.Value
 
 /// Represets a property as a type of color.
 public protocol ColorRepresentable {}
 
-public extension Declaration where ID: ColorRepresentable {
+/// All property values where ColorRepresentable is set.
+public extension PropertyValue where ID: ColorRepresentable {
 
   // MARK: - HEX function
 
   static func hex(unsafe value: String) -> Self {
-    Self(value)
+    Self(stringLiteral: value)
   }
 
   // MARK: - Color functions
 
   static func rgb(r: Int, g: Int, b: Int) -> Self {
-    Self("rgb(\(r),\(g),\(b))")
+    Self(stringLiteral: "rgb(\(r),\(g),\(b))")
   }
 
   static func rgba(r: Int, g: Int, b: Int, a: Int) -> Self {
-    Self("rgba(\(r),\(g),\(b),\(a))")
+    Self(stringLiteral: "rgba(\(r),\(g),\(b),\(a))")
   }
 
   static func hsla(h: Int, s: Int, l: Int, a: Int? = nil) -> Self {
     if let a {
-      Self("hsla(\(h),\(s),\(l),\(a))")
+      Self(stringLiteral: "hsla(\(h),\(s),\(l),\(a))")
     } else {
-      Self("hsl(\(h),\(s),\(l))")
+      Self(stringLiteral: "hsl(\(h),\(s),\(l))")
     }
   }
 

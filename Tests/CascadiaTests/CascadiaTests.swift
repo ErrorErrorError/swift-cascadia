@@ -35,7 +35,7 @@ struct CascadiaTests {
         }
       }
     }
-
+    
     #expect(CustomSheet().render(using: .init(indent: .minify)) == #"@charset "UTF-8";@import "style.css";*{background:red;.container{color:red;}}"#)
   }
 
