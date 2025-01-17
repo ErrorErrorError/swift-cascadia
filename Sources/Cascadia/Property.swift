@@ -62,17 +62,20 @@ public struct PropertyValue<ID: Property>: Equatable, ExpressibleByStringLiteral
   public init(stringLiteral value: StringLiteralType) {
     self.rawValue = value
   }
+
+  init(_ value: String) {
+    self.init(stringLiteral: value)
+  }
 }
 
 /// Global property values
 public extension PropertyValue {
 
-  /// Represents the computed value of the property on the element's parent, provided it is inherited.
-  static var inherit: Self { #function }
-
   /// Represents the value specified as the property's initial value.
   static var initial: Self { #function }
 
+  /// Represents the computed value of the property on the element's parent, provided it is inherited.
+  static var inherit: Self { #function }
 
   /// Resets the property to its inherited value if it inherits from its parent or to the default value established by the user agent's stylesheet (or by user styles, if any exist).
   static var revert: Self { #function }
