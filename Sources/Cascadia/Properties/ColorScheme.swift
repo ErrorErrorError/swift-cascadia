@@ -1,4 +1,4 @@
-public struct ColorScheme: Declaration {
+public struct ColorScheme: Property {
   public static let identifier = "color-scheme"
   public var value: Value
 

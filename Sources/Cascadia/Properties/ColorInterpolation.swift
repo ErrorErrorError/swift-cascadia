@@ -1,4 +1,4 @@
-public struct ColorInterpolation: Declaration {
+public struct ColorInterpolation: Property {
   public static let identifier = "color-interpolation"
   public var value: Value
 

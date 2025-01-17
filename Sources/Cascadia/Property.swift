@@ -1,12 +1,12 @@
 /// A property-value pair
 /// Also defines which feature is considered for a given property
-public protocol Declaration: Block where Body == Never {
+public protocol Property: Block where Body == Never {
   typealias Value = PropertyValue<Self>
   static var identifier: String { get }
   var value: Value { get }
 }
 
-extension Declaration {
+extension Property {
   public consuming func important() -> Important<Self> {
     Important(self)
   }
@@ -29,7 +29,7 @@ extension Declaration {
   }
 }
 
-public struct Important<D: Declaration>: Block {
+public struct Important<D: Property>: Block {
   let declaration: D
 
   init(_ declaration: D) {
@@ -55,7 +55,7 @@ public struct Important<D: Declaration>: Block {
 }
 
 /// The value of a property
-public struct PropertyValue<ID: Declaration>: Equatable, ExpressibleByStringLiteral {
+public struct PropertyValue<ID: Property>: Equatable, ExpressibleByStringLiteral {
   public var rawValue: String
 
   @inlinable @inline(__always)

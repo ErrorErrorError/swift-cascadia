@@ -1,4 +1,4 @@
-public struct Background: Declaration, ColorRepresentable {
+public struct Background: Property, ColorRepresentable {
   public static let identifier = "background"
   public var value: Value
 
