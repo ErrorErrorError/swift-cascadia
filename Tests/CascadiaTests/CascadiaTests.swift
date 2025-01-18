@@ -35,7 +35,7 @@ struct CascadiaTests {
         }
       }
     }
-    
+
     #expect(CustomSheet().render(using: .init(indent: .minify)) == #"@charset "UTF-8";@import "style.css";*{background:red;.container{color:red;}}"#)
   }
 
@@ -46,6 +46,7 @@ struct CascadiaTests {
 
       All() => {
         Background(.red)
+        BorderColor(.red)
 
         Class("container") => {
           Color(.red)
@@ -59,6 +60,7 @@ struct CascadiaTests {
       @import "style.css";
       * {
         background: red;
+        border-color: red;
         .container {
           color: red;
         }

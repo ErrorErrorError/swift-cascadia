@@ -5,10 +5,8 @@ public struct ColorInterpolation: Property {
   public init(_ value: Value) {
     self.value = value
   }
-}
 
-public extension PropertyValue<ColorInterpolation> {
-  static var auto: Self { #function }
-  static var sRGB: Self { #function }
-  static var linearRGB: Self { #function }
+  static var auto: Self { Self(#function) }
+  static var sRGB: Self { Self(#function) }
+  static var linearRGB: Self { Self(#function) }
 }

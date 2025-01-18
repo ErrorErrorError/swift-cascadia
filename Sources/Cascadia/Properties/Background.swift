@@ -2,13 +2,15 @@ public struct Background: Property, ColorValue {
   public static let identifier = "background"
   public var value: Value
 
-  public init(_ value: Value) {
-    self.value = value
+  public init(_ rawValue: Value) {
+    self.value = rawValue
   }
-}
 
-extension PropertyValue<Background> {
-  public static func url(_ url: String) -> Self {
-    Self(stringLiteral: "url(\"\(url)\")")
+  public init(url: String) {
+    self.init("url(\"\(url)\")")
+  }
+
+  public init(src: String) {
+    self.init("src(\"\(src)\")")
   }
 }

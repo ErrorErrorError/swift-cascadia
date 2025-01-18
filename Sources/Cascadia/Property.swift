@@ -1,9 +1,23 @@
 /// A property-value pair
 /// Also defines which feature is considered for a given property
-public protocol Property: Block where Body == Never {
+public protocol Property: Sendable, Block where Body == Never {
   typealias Value = PropertyValue<Self>
   static var identifier: String { get }
   var value: Value { get }
+
+  init(_ rawValue: Value)
+}
+
+public struct PropertyValue<P: Property>: Sendable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
+  public let rawValue: String
+
+  public init(stringLiteral value: StringLiteralType) {
+    self.rawValue = value
+  }
+
+  public init(_ rawValue: String) {
+    self.rawValue = rawValue
+  }
 }
 
 extension Property {
@@ -22,7 +36,7 @@ extension Property {
     into renderer: inout Renderer<Writer>
   ) {
     renderer.declaration(
-      Self.identifier, 
+      Self.identifier,
       value: value.value.rawValue, 
       important: false
     )
@@ -55,18 +69,18 @@ public struct Important<D: Property>: Block {
 }
 
 /// The value of a property
-public struct PropertyValue<ID: Property>: Equatable, ExpressibleByStringLiteral {
-  public var rawValue: String
+// public struct PropertyValue<ID: Property>: Sendable, Equatable, ExpressibleByStringLiteral {
+//   public var rawValue: String
 
-  @inlinable @inline(__always)
-  public init(stringLiteral value: StringLiteralType) {
-    self.rawValue = value
-  }
+//   @inlinable @inline(__always)
+//   public init(stringLiteral value: StringLiteralType) {
+//     self.rawValue = value
+//   }
 
-  init(_ value: String) {
-    self.init(stringLiteral: value)
-  }
-}
+//   init(_ value: String) {
+//     self.init(stringLiteral: value)
+//   }
+// }
 
 /// Global property values
 public extension PropertyValue {

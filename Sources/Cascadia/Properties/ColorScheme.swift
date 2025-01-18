@@ -5,10 +5,8 @@ public struct ColorScheme: Property {
   public init(_ value: Value) {
     self.value = value
   }
-}
 
-extension PropertyValue<ColorScheme> {
-  public static var normal: Self { #function }
-  public static var dark: Self { #function }
-  public static var light: Self { #function }
+  public static var normal: Self { Self(#function) }
+  public static var dark: Self { Self(#function) }
+  public static var light: Self { Self(#function) }
 }
