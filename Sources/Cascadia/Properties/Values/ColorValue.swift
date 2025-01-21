@@ -1,8 +1,8 @@
 /// Represets a property value as a type of color.
-public protocol ColorValue {}
+public protocol ColorValue: RawValue {}
 
 // All color functions
-public extension Property where Self: ColorValue {
+public extension Property where Value: ColorValue {
   init(hex value: String) {
     self.init(.hex(value))
   }
@@ -10,145 +10,204 @@ public extension Property where Self: ColorValue {
   // MARK: - <color-function>
 
   init(r: Int, g: Int, b: Int) {
-    self.init("rgb(\(r) \(g) \(b))")
+    self.init(.rgb(r: r, g: g, b: b))
   }
 
   init(r: Int, g: Int, b: Int, a: Int) {
-    self.init("rgba(\(r) \(g) \(b) \(a))")
+    self.init(.rgba(r: r, g: g, b: b, a: a))
   }
 
-  init(h: Value.Hue, s: Int, l: Int) {
-    self.init("hsl(\(h.rawValue) \(s) \(l))")
+  init(h: Hue, s: Int, l: Int) {
+    self.init(.hsl(h: h, s: s, l: l))
   }
 
-  init(h: Value.Hue, s: Int, l: Int, a: Int) {
-    self.init("hsla(\(h.rawValue) \(s) \(l) \(a))")
+  init(h: Hue, s: Int, l: Int, a: Int) {
+    self.init(.hsla(h: h, s: s, l: l, a: a))
   }
 
-  init(h: Value.Hue, w: Int, b: Int, alpha: Int? = nil) {
-    self.init("hwb(\([h.rawValue, String(w), String(b), alpha.flatMap(String.init)].compactMap { $0 }.joined(separator: " ")))")
+  init(h: Hue, w: Int, b: Int, alpha: Int? = nil) {
+    self.init(.hwb(h: h, w: w, b: b, alpha: alpha))
   }
 
-  init(L: Int, a: Int, b: Int, alpha _: Int? = nil) {
-    self.init("lab(\([L, a, b, a].compactMap { String($0) }.joined(separator: " ")))")
+  init(L: Int, a: Int, b: Int, alpha: Int? = nil) {
+    self.init(.lab(L: L, a: a, b: b, alpha: alpha))
   }
 
-  init<C: ColorValue>(
-    from color: PropertyValue<C>,
+  init(
+    from color: Color.Value,
     L: Double,
     a: Double,
     b: Double,
     alpha: Double? = nil
   ) {
-    self.init("lab(from \(color.rawValue) \([L, a, b])\(alpha.flatMap { " / \($0)" } ?? ""))")
+    self.init(.lab(from: color, L: L, a: a, b: b, alpha: alpha))
   }
 
-  init(L: Double, C: Double, H: Value.Hue, alpha: Double? = nil) {
-    self.init("lch(\(L) \(C) \(H.rawValue)\(alpha.flatMap { " / \($0)" } ?? ""))")
+  init(L: Double, C: Double, H: Hue, alpha: Double? = nil) {
+    self.init(.lch(L: L, C: C, H: H, alpha: alpha))
   }
 
   init(oklab L: Double, a: Double, b: Double, alpha: Double? = nil) {
-    self.init("oklab(\(L) \(a) \(b)\(alpha.flatMap { " / \($0)" } ?? ""))")
+    self.init(.oklab(L: L, a: a, b: b, alpha: alpha))
   }
 
-  init(oklch L: Double, C: Double, H: Value.Hue, alpha: Double? = nil) {
-    self.init("oklch(\(L) \(C) \(H)\(alpha.flatMap { " / \($0)" } ?? ""))")
+  init(oklch L: Double, C: Double, H: Hue, alpha: Double? = nil) {
+    self.init(.oklch(L: L, C: C, H: H))
   }
 
   init(
-    from color: Value? = nil,
-    _ colorspace: Value.ColorSpace,
+    from color: Color.Value? = nil,
+    _ colorspace: ColorSpace,
     alpha: Int? = nil
   ) {
-    self.init("color(\(color.flatMap { "from \($0.rawValue) " } ?? "")\(colorspace.rawValue)\(alpha.flatMap { " / \($0)" } ?? ""))")
+    self.init(.color(from: color, colorspace, alpha: alpha))
   }
 }
 
-/// All property values where ColorValue.
-public extension PropertyValue where P: ColorValue {
-  enum Hue: Sendable, ExpressibleByIntegerLiteral {
-    case number(Double)
-    case angle(Angle)
+public enum Hue: Sendable, ExpressibleByIntegerLiteral {
+  case number(Double)
+  case angle(Angle)
 
-    public enum Angle: Sendable {
-      case deg(Double)
-      case rad(Double)
-      case grad(Double)
-      case turn(Double)
-
-      var rawValue: String {
-        switch self {
-        case let .deg(deg): "\(deg)deg"
-        case let .rad(rad): "\(rad)rad"
-        case let .grad(grad): "\(grad)grad"
-        case let .turn(turn): "\(turn)turn"
-        }
-      }
-    }
-
-    public init(integerLiteral value: Double) {
-      self = .number(value)
-    }
+  public enum Angle: Sendable {
+    case deg(Double)
+    case rad(Double)
+    case grad(Double)
+    case turn(Double)
 
     var rawValue: String {
       switch self {
-      case let .number(num): String(num)
-      case let .angle(angle): angle.rawValue
+      case let .deg(deg): "\(deg)deg"
+      case let .rad(rad): "\(rad)rad"
+      case let .grad(grad): "\(grad)grad"
+      case let .turn(turn): "\(turn)turn"
       }
     }
   }
 
-  struct ColorSpace: Sendable, ExpressibleByStringLiteral {
-    public let rawValue: String
+  public init(integerLiteral value: Double) {
+    self = .number(value)
+  }
 
-    public init(stringLiteral value: StringLiteralType) {
-      rawValue = value
-    }
-
-    public init(rgb: PredefinedRGB, r: Double, g: Double, b: Double) {
-      rawValue = "\(rgb.rawValue) \(r) \(g) \(b)"
-    }
-
-    public init(jzczhz value: Double, chroma: Double, hue: Hue) {
-      rawValue = "jzczhz \(value) \(chroma) \(hue.rawValue)"
-    }
-
-    public init(rectangular: PredefinedRectangular, values: (Double, Double, Double)) {
-      rawValue = "\(rectangular.rawValue) \(values.0) \(values.1) \(values.2)"
-    }
-
-    public init(xyz: XYZ, x: Double, y: Double, z: Double) {
-      rawValue = "\(xyz.rawValue) \(x) \(y) \(z)"
-    }
-
-    public enum PredefinedRGB: String {
-      case sRGB = "srgb"
-      case sRGBLinear = "srgb-linear"
-      case displayP3 = "display-p3"
-      case a98RGB = "a98-rgb"
-      case prophotoRGB = "prophoto-rgb"
-      case rec2020
-      case rec2100PQ = "rec2100-pq"
-      case rec2100HLG = "rec2100-hlg"
-      case rec2100Linear = "rec2100-linear"
-    }
-
-    public enum PredefinedRectangular: String {
-      case jzazbz
-      case ictcp
-    }
-
-    public enum XYZ: String {
-      case xyz
-      case xyzD50 = "xyz-d50"
-      case xyzD65 = "xyz-d65"
+  var rawValue: String {
+    switch self {
+    case let .number(num): String(num)
+    case let .angle(angle): angle.rawValue
     }
   }
+}
+
+public struct ColorSpace: Sendable, ExpressibleByStringLiteral {
+  public let rawValue: String
+
+  public init(stringLiteral value: StringLiteralType) {
+    rawValue = value
+  }
+
+  public init(rgb: PredefinedRGB, r: Double, g: Double, b: Double) {
+    rawValue = "\(rgb.rawValue) \(r) \(g) \(b)"
+  }
+
+  public init(jzczhz value: Double, chroma: Double, hue: Hue) {
+    rawValue = "jzczhz \(value) \(chroma) \(hue.rawValue)"
+  }
+
+  public init(rectangular: PredefinedRectangular, values: (Double, Double, Double)) {
+    rawValue = "\(rectangular.rawValue) \(values.0) \(values.1) \(values.2)"
+  }
+
+  public init(xyz: XYZ, x: Double, y: Double, z: Double) {
+    rawValue = "\(xyz.rawValue) \(x) \(y) \(z)"
+  }
+
+  public enum PredefinedRGB: String {
+    case sRGB = "srgb"
+    case sRGBLinear = "srgb-linear"
+    case displayP3 = "display-p3"
+    case a98RGB = "a98-rgb"
+    case prophotoRGB = "prophoto-rgb"
+    case rec2020
+    case rec2100PQ = "rec2100-pq"
+    case rec2100HLG = "rec2100-hlg"
+    case rec2100Linear = "rec2100-linear"
+  }
+
+  public enum PredefinedRectangular: String {
+    case jzazbz
+    case ictcp
+  }
+
+  public enum XYZ: String {
+    case xyz
+    case xyzD50 = "xyz-d50"
+    case xyzD65 = "xyz-d65"
+  }
+}
+
+// /// All property values where ColorValue.
+public extension ColorValue {
 
   // MARK: - <hex-color>
 
   static func hex(_ value: String) -> Self {
     Self(value)
+  }
+
+  // MARK: - <color-function>
+
+  static func rgb(r: Int, g: Int, b: Int) -> Self {
+    Self("rgb(\(r) \(g) \(b))")
+  }
+
+  static func rgba(r: Int, g: Int, b: Int, a: Int) -> Self {
+    Self("rgba(\(r) \(g) \(b) \(a))")
+  }
+
+  static func hsl(h: Hue, s: Int, l: Int) -> Self {
+    Self("hsl(\(h.rawValue) \(s) \(l))")
+  }
+
+  static func hsla(h: Hue, s: Int, l: Int, a: Int) -> Self {
+    Self("hsla(\(h.rawValue) \(s) \(l) \(a))")
+  }
+
+  static func hwb(h: Hue, w: Int, b: Int, alpha: Int? = nil) -> Self {
+    Self("hwb(\([h.rawValue, String(w), String(b), alpha.flatMap(String.init)].joined(separator: " ")))")
+  }
+
+  /// absolute lab()
+  static func lab(L: Int, a: Int, b: Int, alpha: Int? = nil) -> Self {
+    Self("lab(\([String(L), String(a), String(b), alpha.flatMap(String.init)].joined(separator: " ")))")
+  }
+
+  /// relative lab()
+  static func lab(
+    from color: Color.Value,
+    L: Double,
+    a: Double,
+    b: Double,
+    alpha: Double? = nil
+  ) -> Self {
+    Self("lab(from \(color.rawValue) \([L, a, b])\(alpha.flatMap { " / \($0)" } ?? ""))")
+  }
+
+  static func lch(L: Double, C: Double, H: Hue, alpha: Double? = nil) -> Self {
+    Self("lch(\(L) \(C) \(H.rawValue)\(alpha.flatMap { " / \($0)" } ?? ""))")
+  }
+
+  static func oklab(L: Double, a: Double, b: Double, alpha: Double? = nil) -> Self {
+    Self("oklab(\(L) \(a) \(b)\(alpha.flatMap { " / \($0)" } ?? ""))")
+  }
+
+  static func oklch(L: Double, C: Double, H: Hue, alpha: Double? = nil) -> Self {
+    Self("oklch(\(L) \(C) \(H)\(alpha.flatMap { " / \($0)" } ?? ""))")
+  }
+
+  static func color(
+    from color: Color.Value? = nil,
+    _ colorspace: ColorSpace,
+    alpha: Int? = nil
+  ) -> Self {
+    Self("color(\(color.flatMap { "from \($0.rawValue) " } ?? "")\(colorspace.rawValue)\(alpha.flatMap { " / \($0)" } ?? ""))")
   }
 
   // MARK: - <named-color>

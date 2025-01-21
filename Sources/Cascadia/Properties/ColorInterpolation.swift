@@ -6,7 +6,15 @@ public struct ColorInterpolation: Property {
     self.value = value
   }
 
-  static var auto: Self { Self(#function) }
-  static var sRGB: Self { Self(#function) }
-  static var linearRGB: Self { Self(#function) }
+  public struct Value: Sendable, RawValue {
+    public let rawValue: String
+
+    public static let auto: Self = #function
+    public static let sRGB: Self = #function
+    public static let linearRGB: Self = #function
+
+    public init(_ value: String) {
+      self.rawValue = value
+    }
+  }
 }

@@ -1,8 +1,19 @@
-public struct Color: Property, ColorValue {
+public struct Color: Property {
   public static let identifier = "color"
+
   public var value: Value
 
-  public init(_ rawValue: Value) {
-    self.value = rawValue
+  public init(_ value: Value) {
+    self.value = value
+  }
+}
+
+extension Color {
+  public struct Value: ColorValue {
+    public let rawValue: String
+
+    public init(_ value: String) {
+      self.rawValue = value
+    }
   }
 }

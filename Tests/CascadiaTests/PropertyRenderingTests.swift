@@ -6,7 +6,7 @@ struct PropertyRenderingTests {
   @Test func propertyRenderer() async throws {
     let a = Color(.red)
     let b = BackgroundColor(.red)
-    let c = Background(.red)
+    let c = Background(.color(.red))
 
     #expect(a.render() == "color: red;")
     #expect(b.render() == "background-color: red;")

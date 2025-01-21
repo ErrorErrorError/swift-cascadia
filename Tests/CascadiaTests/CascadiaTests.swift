@@ -9,7 +9,7 @@ struct CascadiaTests {
       Import("style.css")
 
       All() => {
-        Background(.red)
+        Background(.color(.red))
 
         Class("container") => {
           Color(.red)
@@ -27,7 +27,7 @@ struct CascadiaTests {
         Import("style.css")
 
         All() => {
-          Background(.red)
+          Background(.color(.red))
 
           Class("container") => {
             Color(.red)
@@ -45,7 +45,7 @@ struct CascadiaTests {
       Import("style.css")
 
       All() => {
-        Background(.red)
+        Background(.color(.red))
         BorderColor(.red)
 
         Class("container") => {
@@ -76,7 +76,7 @@ struct CascadiaTests {
         Import("style.css")
 
         All() => {
-          Background(.red)
+          Background(.color(.red))
 
           Class("container") => {
             Color(.red)

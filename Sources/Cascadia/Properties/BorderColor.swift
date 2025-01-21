@@ -1,56 +1,85 @@
-public struct BorderColor: Property, ColorValue {
+public struct BorderColor: Property {
   public static let identifier = "border-color"
   public var value: Value
 
-  public init(_ rawValue: Value) {
-    self.value = rawValue
+  public init(_ value: Value) {
+    self.value = value
   }
 
-  public init(y: Color.Value, x: Color.Value) {
-    self.value = ""
+  public init(y: Value, x: Value) {
+    self.value = x.joined(with: y, separator: " ")
   }
 
-  public init(top: Color.Value, x: Color.Value, bottom: Color.Value) {
-    self.value = ""
+  public init(top: Value, x: Value, bottom: Value) {
+    self.value = top.joined(with: x, bottom, separator: " ")
   }
 
-  public init(top: Color.Value, right: Color.Value, bottom: Color.Value, left: Color.Value) {
-    self.value = ""
+  public init(top: Value, right: Value, bottom: Value, left: Value) {
+    self.value = top.joined(with: right, bottom, left, separator: " ")
   }
 }
 
-public struct BorderTopColor: Property, ColorValue {
+extension BorderColor {
+  public struct Value: ColorValue {
+    public var rawValue: String
+
+    public init(_ value: String) {
+      self.rawValue = value
+    }
+
+    public struct ColorStripe: ColorValue {
+      public var rawValue: String
+      public init(_ value: String) {
+        self.rawValue = value
+      }
+
+      public init(_ color: Color.Value, length: String? = nil) {
+        self.rawValue = [color.rawValue, length].joined(separator: " ")
+      }
+    }
+
+    public static func stripes(
+      _ stripe: ColorStripe, 
+      _ stripes: ColorStripe...
+    ) -> Self {
+      let allStripes = [stripe] + stripes
+      return Self("stripes(\(allStripes.map(\.rawValue).joined(separator: ", ")))")
+    }
+  }
+}
+
+public struct BorderTopColor: Property {
   public static let identifier = "border-top-color"
   public var value: Value
 
-  public init(_ value: Value) {
+  public init(_ value: BorderColor.Value) {
     self.value = value
   }
 }
 
-public struct BorderBottomColor: Property, ColorValue {
+public struct BorderBottomColor: Property {
   public static let identifier = "border-bottom-color"
   public var value: Value
 
-  public init(_ value: Value) {
+  public init(_ value: BorderColor.Value) {
     self.value = value
   }
 }
 
-public struct BorderLeftColor: Property, ColorValue {
+public struct BorderLeftColor: Property {
   public static let identifier = "border-left-color"
   public var value: Value
 
-  public init(_ value: Value) {
+  public init(_ value: BorderColor.Value) {
     self.value = value
   }
 }
 
-public struct BorderRightColor: Property, ColorValue {
+public struct BorderRightColor: Property {
   public static let identifier = "border-right-color"
   public var value: Value
 
-  public init(_ value: Value) {
+  public init(_ value: BorderColor.Value) {
     self.value = value
   }
 }

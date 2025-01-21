@@ -6,7 +6,15 @@ public struct ColorScheme: Property {
     self.value = value
   }
 
-  public static var normal: Self { Self(#function) }
-  public static var dark: Self { Self(#function) }
-  public static var light: Self { Self(#function) }
+  public struct Value: Sendable, RawValue {
+    public let rawValue: String
+
+    public init(_ value: String) {
+      self.rawValue = value
+    }
+
+    public static let normal: Self = #function
+    public static let dark: Self = #function
+    public static let light: Self = #function
+  }
 }

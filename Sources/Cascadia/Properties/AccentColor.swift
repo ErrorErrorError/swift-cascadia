@@ -1,10 +1,15 @@
-// public struct AccentColor: Property, ColorValue, AutoValue {
-//   public static let identifier = "accent-color"
-//   public var value: Value
+public struct AccentColor {
+  public static let identifier = "accent-color"
 
-//   public init(_ value: Value) {
-//     self.value = value
-//   }
+  public init(_ value: Value) {}
+}
 
-//   public static let auto = Self("auto")
-// }
+public extension AccentColor {
+  struct Value: ColorValue, AutoValue {
+    public var rawValue: String
+
+    public init(_ value: String) {
+      rawValue = value
+    }
+  }
+}

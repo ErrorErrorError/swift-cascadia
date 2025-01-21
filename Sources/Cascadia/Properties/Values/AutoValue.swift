@@ -1,5 +1,5 @@
-public protocol AutoValue {}
+public protocol AutoValue: RawValue {}
 
-extension Property where Self: AutoValue {
-  public static var auto: Self { Self(#function) }
+extension AutoValue {
+  public static var auto: Self { #function }
 }
