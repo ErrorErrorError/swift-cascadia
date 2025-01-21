@@ -1,5 +1,5 @@
 /// e.g.: .container
-public struct Class: Selector {
+public struct Class: Sendable, Selector {
   public let name: String
 
   @_spi(Core)

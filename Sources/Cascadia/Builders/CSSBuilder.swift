@@ -44,6 +44,7 @@ extension CSSBuilder {
 public struct EmptyCSS: CSS, Sendable {
   public init() {}
 
+  @_spi(Core)
   public var body: Never {
     neverBody(Self.self)
   }
@@ -65,6 +66,7 @@ public struct CSSTuple<each Child: CSS>: CSS {
     self.values = (repeat each values)
   }
 
+  @_spi(Core)
   public var body: Never {
     neverBody(Self.self)
   }
@@ -91,6 +93,7 @@ public enum _CSSConditional<TrueContent: CSS, FalseContent: CSS>: CSS {
   case trueContent(TrueContent)
   case falseContent(FalseContent)
 
+  @_spi(Core)
   public var body: Never {
     neverBody(Self.self)
   }
@@ -112,6 +115,7 @@ public enum _CSSConditional<TrueContent: CSS, FalseContent: CSS>: CSS {
 extension _CSSConditional: Sendable where TrueContent: Sendable, FalseContent: Sendable {}
 
 extension Optional: CSS where Wrapped: CSS {
+  @_spi(Core)
   public var body: Never {
     neverBody(Self.self)
   }
