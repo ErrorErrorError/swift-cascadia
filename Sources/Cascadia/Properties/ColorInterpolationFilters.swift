@@ -1,4 +1,4 @@
-public struct ColorInterpolationFilters: Property {
+public struct ColorInterpolationFilters: PrimitiveProperty {
   public static let identifier = "color-interpolation-filter"
   public var value: Value
 

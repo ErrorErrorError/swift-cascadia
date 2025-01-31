@@ -1,4 +1,4 @@
-public struct Display: Property {
+public struct Display: PrimitiveProperty {
   public static let identifier = "display"
   public let value: Value
 

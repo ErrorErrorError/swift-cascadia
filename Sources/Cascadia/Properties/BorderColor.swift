@@ -1,4 +1,4 @@
-public struct BorderColor: Property {
+public struct BorderColor: PrimitiveProperty {
   public static let identifier = "border-color"
   public var value: Value
 
@@ -48,36 +48,36 @@ extension BorderColor {
   }
 }
 
-public struct BorderTopColor: Property {
+public struct BorderTopColor: PrimitiveProperty {
   public static let identifier = "border-top-color"
-  public var value: Value
+  public var value: BorderColor.Value
 
   public init(_ value: BorderColor.Value) {
     self.value = value
   }
 }
 
-public struct BorderBottomColor: Property {
+public struct BorderBottomColor: PrimitiveProperty {
   public static let identifier = "border-bottom-color"
-  public var value: Value
+  public var value: BorderColor.Value
 
   public init(_ value: BorderColor.Value) {
     self.value = value
   }
 }
 
-public struct BorderLeftColor: Property {
+public struct BorderLeftColor: PrimitiveProperty {
   public static let identifier = "border-left-color"
-  public var value: Value
+  public var value: BorderColor.Value
 
   public init(_ value: BorderColor.Value) {
     self.value = value
   }
 }
 
-public struct BorderRightColor: Property {
+public struct BorderRightColor: PrimitiveProperty {
   public static let identifier = "border-right-color"
-  public var value: Value
+  public var value: BorderColor.Value
 
   public init(_ value: BorderColor.Value) {
     self.value = value

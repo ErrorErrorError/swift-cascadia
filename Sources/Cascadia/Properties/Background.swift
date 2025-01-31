@@ -1,4 +1,4 @@
-public struct Background: Property {
+public struct Background: PrimitiveProperty {
   public static let identifier = "background"
   public var value: Value
 
@@ -37,7 +37,7 @@ public struct Background: Property {
   }
 }
 
-public struct BackgroundImage: Property {
+public struct BackgroundImage: PrimitiveProperty {
   public static let identifier = "background-image"
   public var value: Value
 
@@ -54,7 +54,7 @@ public struct BackgroundImage: Property {
   }
 }
 
-public struct BackgroundPosition: Property {
+public struct BackgroundPosition: PrimitiveProperty {
   public static let identifier = "background-position"
   public var value: Value
 
@@ -71,7 +71,7 @@ public struct BackgroundPosition: Property {
   }
 }
 
-public struct BackgroundSize: Property {
+public struct BackgroundSize: PrimitiveProperty {
   public static let identifier = "background-size"
   public var value: Value
 
@@ -88,7 +88,7 @@ public struct BackgroundSize: Property {
   }
 }
 
-public struct BackgroundRepeat: Property {
+public struct BackgroundRepeat: PrimitiveProperty {
   public static let identifier = "background-repeat"
   public var value: Value
 
@@ -105,7 +105,7 @@ public struct BackgroundRepeat: Property {
   }
 }
 
-public struct BackgroundOrigin: Property {
+public struct BackgroundOrigin: PrimitiveProperty {
   public static let identifier = "background-origin"
   public var value: Value
 
@@ -122,7 +122,7 @@ public struct BackgroundOrigin: Property {
   }
 }
 
-public struct BackgroundClip: Property {
+public struct BackgroundClip: PrimitiveProperty {
   public static let identifier = "background-clip"
   public var value: Value
 
@@ -139,7 +139,7 @@ public struct BackgroundClip: Property {
   }
 }
 
-public struct BackgroundAttachment: Property {
+public struct BackgroundAttachment: PrimitiveProperty {
   public static let identifier = "background-attachment"
   public var value: Value
 
@@ -156,9 +156,9 @@ public struct BackgroundAttachment: Property {
   }
 }
 
-public struct BackgroundColor: Property {
+public struct BackgroundColor: PrimitiveProperty {
   public static let identifier = "background-color"
-  public var value: Value
+  public var value: Color.Value
 
   public init(_ value: Color.Value) {
     self.value = value

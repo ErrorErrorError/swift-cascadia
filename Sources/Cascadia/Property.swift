@@ -3,11 +3,18 @@
 public protocol Property: Block where Body == Never {
   associatedtype Value: RawValue
 
+  var identifier: String { get }
+  var value: Value { get }
+}
+
+public protocol PrimitiveProperty: Property {
   static var identifier: String { get }
 
-  var value: Value { get }
-
   init(_ value: Value)
+}
+
+extension PrimitiveProperty {
+  public var identifier: String { Self.identifier }
 }
 
 extension Property {
@@ -26,7 +33,7 @@ extension Property {
     into renderer: inout Renderer<Writer>
   ) {
     renderer.declaration(
-      Self.identifier,
+      property.identifier,
       value: property.value.rawValue, 
       important: false
     )
@@ -51,7 +58,7 @@ public struct Important<D: Property>: Block {
     into renderer: inout Renderer<Writer>
   ) {
     renderer.declaration(
-      D.identifier, 
+      self.property.identifier, 
       value: self.property.value.rawValue, 
       important: true
     )

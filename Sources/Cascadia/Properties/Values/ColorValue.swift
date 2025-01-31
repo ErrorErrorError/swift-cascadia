@@ -2,7 +2,7 @@
 public protocol ColorValue: RawValue {}
 
 // All color functions
-public extension Property where Value: ColorValue {
+public extension PrimitiveProperty where Value: ColorValue {
   init(hex value: String) {
     self.init(.hex(value))
   }

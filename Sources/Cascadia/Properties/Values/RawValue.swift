@@ -24,6 +24,10 @@ extension Sequence where Element: RawValue {
   }
 }
 
+extension String: RawValue {
+  public var rawValue: Self { self }
+}
+
 /// Global property values
 public extension RawValue {
 

@@ -1,4 +1,4 @@
-public struct Color: Property {
+public struct Color: PrimitiveProperty {
   public static let identifier = "color"
 
   public var value: Value
